@@ -9,35 +9,99 @@
 /// See the file LICENSE for details.
 ///
 
-use nom::IResult;
-
-use std::str::from_utf8;
-use std::fmt;
 use std::result::Result;
+use nom::character::complete::{
+    multispace0,
+    alphanumeric1
+};
 
 #[derive(Debug)]
 pub struct ParserError {
-    data: String
+    message: String
+}
+
+impl std::fmt::Display for ParserError {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(fmt, "{}", self.message)
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Verb {
+    SELECT,
+    UPDATE,
 }
 
 #[derive(Debug)]
 pub struct Statement<'a> {
-    pub verb: &'a str,
-    pub columns: Vec<&'a str>,
-    pub table: &'a str,
-    pub conditions: Vec<&'a str>
+    pub verb: Verb,
+    pub columns: Option<Vec<&'a str>>,
+    pub table: Option<&'a str>,
+    pub conditions: Option<Vec<&'a str>>,
 }
 
-named!(word_parser<&str, &str>, take_until!(" "));
+named!(verb_parser<&str, Verb>,
+    alt!(
+        value!(Verb::SELECT, tag!("select"))
+        | value!(Verb::UPDATE, tag!("update"))
+    )
+);
+
+named!(column_name<&str, &str>,
+    delimited!(
+        multispace0,
+        alt!(
+            tag!("*")
+            | alphanumeric1
+        ),
+        multispace0
+    )
+);
+
+named!(column_parser<&str, Vec<&str>>,
+    complete!(
+        delimited!(
+            multispace0,
+            alt!(
+                do_parse!(
+                    single_col: column_name >>
+                    (vec![single_col])
+                )
+                | separated_list0!(
+                    tag!(","),
+                    column_name
+                )
+            ),
+            multispace0
+        )
+    )
+);
+
+named!(table_parser<&str, &str>,
+    complete!(
+        delimited!(
+            multispace0,
+            do_parse!(
+                tag!("from") >>
+                multispace0 >>
+                table: alphanumeric1 >>
+                (table)
+            ),
+            multispace0
+        )
+    )
+);
 
 named!(statement_parser<&str, Statement>,
     do_parse!(
-        verb: word_parser >>
+        verb: verb_parser >>
+        columns: opt!(column_parser) >>
+        table: opt!(table_parser) >>
         (Statement {
             verb: verb,
-            columns: vec![],
-            table: "",
-            conditions: vec![]
+            columns: columns,
+            table: table,
+            conditions: None,
         })
     )
 );
@@ -46,7 +110,7 @@ pub fn parse(input: &str) -> Result<Statement, ParserError> {
     match statement_parser(input) {
         Ok((_, stmt)) => Ok(stmt),
         Err(e) => Err(ParserError {
-            data: format!("Incomplete {:?}", e)
+            message: e.to_string()
         })
     }
 }

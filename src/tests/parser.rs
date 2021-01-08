@@ -9,14 +9,51 @@
 /// See the file LICENSE for details.
 ///
 
-use crate::parser::parse;
+use crate::parser::{ Verb, parse };
+
+///
+/// Simple statements
+///
 
 #[test]
-fn test_parse_simple_statement() {
-    match parse("select * from playlists") {
+fn test_parse_simple_select_statement() {
+    match parse("select") {
         Ok(stmt) => {
-            assert_eq!(stmt.verb, "select");
+            assert_eq!(stmt.verb, Verb::SELECT);
         },
-        Err(e) => panic!(format!("Incomplete: {:?}", e)),
+        Err(e) => panic!(format!("Error: {}", e)),
+    }
+}
+
+#[test]
+fn test_parse_simple_update_statement() {
+    match parse("update") {
+        Ok(stmt) => {
+            assert_eq!(stmt.verb, Verb::UPDATE);
+        },
+        Err(e) => panic!(format!("Error: {}", e)),
+    }
+}
+
+#[test]
+fn test_parse_simple_select_statement_with_column() {
+    match parse("select *") {
+        Ok(stmt) => {
+            assert_eq!(stmt.verb, Verb::SELECT);
+            assert_eq!(stmt.columns, Some(vec!["*"]));
+        },
+        Err(e) => panic!(format!("Error: {}", e)),
+    }
+}
+
+#[test]
+fn test_parse_simple_select_statement_with_column_and_table() {
+    match parse("select * from table") {
+        Ok(stmt) => {
+            assert_eq!(stmt.verb, Verb::SELECT);
+            assert_eq!(stmt.columns, Some(vec!["*"]));
+            assert_eq!(stmt.table, Some("table"));
+        },
+        Err(e) => panic!(format!("Error: {}", e)),
     }
 }
