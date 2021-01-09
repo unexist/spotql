@@ -1,7 +1,7 @@
 ///
 /// @package Spotql
 ///
-/// @file Spotql tests mod
+/// @file Spotql parsers mod
 /// @copyright (c) 2021 Christoph Kappel <christoph@unexist.dev>
 /// @version $Id$
 ///
@@ -9,4 +9,6 @@
 /// See the file LICENSE for details.
 ///
 
-mod parsers;
+pub mod client;
+pub mod statement;
+pub mod parser_error;

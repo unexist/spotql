@@ -12,19 +12,10 @@
 use std::result::Result;
 use nom::character::complete::{
     multispace0,
-    alphanumeric1
+    alphanumeric1,
 };
 
-#[derive(Debug)]
-pub struct ParserError {
-    message: String
-}
-
-impl std::fmt::Display for ParserError {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.message)
-    }
-}
+use crate::parsers::parser_error::ParserError;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Verb {
@@ -40,6 +31,10 @@ pub struct Statement<'a> {
     pub conditions: Option<Vec<&'a str>>,
 }
 
+//
+// Statement parser
+//
+
 named!(verb_parser<&str, Verb>,
     alt!(
         value!(Verb::SELECT, tag!("select"))
@@ -47,7 +42,7 @@ named!(verb_parser<&str, Verb>,
     )
 );
 
-named!(column_name<&str, &str>,
+named!(column_name_parser<&str, &str>,
     delimited!(
         multispace0,
         alt!(
@@ -60,34 +55,36 @@ named!(column_name<&str, &str>,
 
 named!(column_parser<&str, Vec<&str>>,
     complete!(
-        delimited!(
-            multispace0,
-            alt!(
-                do_parse!(
-                    single_col: column_name >>
-                    (vec![single_col])
-                )
-                | separated_list0!(
+        alt!(
+            separated_list1!(
+                delimited!(
+                    multispace0,
                     tag!(","),
-                    column_name
-                )
-            ),
-            multispace0
+                    multispace0
+                ),
+                column_name_parser
+            )
+            | do_parse!(
+                name: column_name_parser >>
+                (vec![name])
+            )
         )
     )
 );
 
 named!(table_parser<&str, &str>,
     complete!(
-        delimited!(
-            multispace0,
-            do_parse!(
-                tag!("from") >>
-                multispace0 >>
-                table: alphanumeric1 >>
-                (table)
+        preceded!(
+            delimited!(
+                multispace0,
+                tag!("from"),
+                multispace0
             ),
-            multispace0
+            delimited!(
+                multispace0,
+                alphanumeric1,
+                multispace0
+            )
         )
     )
 );
@@ -106,7 +103,7 @@ named!(statement_parser<&str, Statement>,
     )
 );
 
-pub fn parse(input: &str) -> Result<Statement, ParserError> {
+pub fn parse_statement(input: &str) -> Result<Statement, ParserError> {
     match statement_parser(input) {
         Ok((_, stmt)) => Ok(stmt),
         Err(e) => Err(ParserError {
