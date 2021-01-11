@@ -9,6 +9,7 @@
 /// See the file LICENSE for details.
 ///
 
-pub mod client;
+pub mod startup;
 pub mod statement;
+pub mod regular;
 pub mod parser_error;

@@ -56,13 +56,15 @@ named!(column_name_parser<&str, &str>,
 named!(column_parser<&str, Vec<&str>>,
     complete!(
         alt!(
-            separated_list1!(
-                delimited!(
-                    multispace0,
-                    tag!(","),
-                    multispace0
-                ),
-                column_name_parser
+            complete!(
+                separated_list0!(
+                    delimited!(
+                        multispace0,
+                        tag!(","),
+                        multispace0
+                    ),
+                    column_name_parser
+                )
             )
             | do_parse!(
                 name: column_name_parser >>

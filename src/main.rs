@@ -22,7 +22,7 @@ use tokio::net::TcpListener;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[allow(unused_imports)]
-use parsers::client::{Client, parse_client};
+use parsers::startup::{Startup, parse_startup};
 
 #[tokio::main]
 async fn main() {
@@ -43,7 +43,7 @@ async fn main() {
 
                 println!("Read {} bytes", n);
 
-                let client = parse_client(&buf[0..n]);
+                let client = parse_startup(&buf[0..n]);
 
                 println!("Client {:?}", client)
 

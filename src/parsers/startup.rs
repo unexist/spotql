@@ -1,7 +1,7 @@
 ///
 /// @package Spotql
 ///
-/// @file Spotql client parser
+/// @file Spotql startup parser
 /// @copyright (c) 2021 Christoph Kappel <christoph@unexist.dev>
 /// @version $Id$
 ///
@@ -17,31 +17,28 @@ use nom::number::complete::{
 use crate::parsers::parser_error::ParserError;
 
 #[derive(Debug)]
-pub struct Client<'a> {
+pub struct Startup<'a> {
     pub protocol_version: i32,
-    pub username: Option<&'a str>,
-    pub database: Option<&'a str>,
+    pub len: i32,
+    pub payload: Option<&'a str>,
 }
 
-/* Startup package: int32 len | int32 protocol | str name | \0 str value | ... | \0 */
-named!(client_parser<&[u8], Client>,
+/* Startup package: int32 len | int32 protocol | payload */
+named!(startup_parser<&[u8], Startup>,
     do_parse!(
         len: le_i32 >>
         version: le_i32 >>
-        values: many0!(
-            terminated!(take_while!(|b: u8| b != 0), tag!([0]))
-        ) >>
-        (Client {
+        (Startup {
+            len: len,
             protocol_version: version,
-            username: None,
-            database: None,
+            payload: None,
         })
     )
 );
 
-pub fn parse_client(input: &[u8]) -> Result<Client, ParserError> {
-    match client_parser(input) {
-        Ok((_, client)) => Ok(client),
+pub fn parse_startup(input: &[u8]) -> Result<Startup, ParserError> {
+    match startup_parser(input) {
+        Ok((_, startup)) => Ok(startup),
         Err(e) => Err(ParserError {
             message: e.to_string()
         })
