@@ -11,16 +11,30 @@
 
 use crate::parsers::startup::{ parse_startup };
 
-///
-/// Startup packet
-///
+//
+// Startup packet
+//
+
+static MESSAGE: &'static str = "\u{0}\u{0}\u{0}N\u{0}\u{3}\u{0}\u{0} \
+    user\u{0}unexist\u{0}database\u{0}foo\u{0}application_name\u{0}
+    psql\u{0}client_encoding\u{0}UTF8\u{0}\u{0}";
+
+static PROTOCOL_VERSION: i32 = 196608;
 
 #[test]
 fn test_parse_startup() {
-    match parse_startup("\u{0}\u{0}\u{0}".as_bytes()) {
+    match parse_startup(MESSAGE.as_bytes()) {
         Ok(startup) => {
-            assert_eq!(startup.protocol_version, 0);
-            assert_eq!(startup.len, 0);
+            assert_eq!(startup.len, 78);
+            assert_eq!(startup.protocol_version, PROTOCOL_VERSION);
+            assert!(startup.payload.is_some());
+
+            match startup.payload {
+                Some(list) => {
+                    assert_eq!(list.len(), 8);
+                },
+                None => unreachable!()
+            }
         },
         Err(e) => panic!(format!("Error: {}", e)),
     }
