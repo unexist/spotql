@@ -36,9 +36,13 @@ pub struct Statement<'a> {
 //
 
 named!(verb_parser<&str, Verb>,
-    alt!(
-        value!(Verb::SELECT, tag!("select"))
-        | value!(Verb::UPDATE, tag!("update"))
+    delimited!(
+        multispace0,
+        alt!(
+            value!(Verb::SELECT, tag!("select"))
+            | value!(Verb::UPDATE, tag!("update"))
+        ),
+        multispace0
     )
 );
 
@@ -55,20 +59,16 @@ named!(column_name_parser<&str, &str>,
 
 named!(column_parser<&str, Vec<&str>>,
     complete!(
-        alt!(
-            complete!(
-                separated_list0!(
+        dbg_dmp!(
+            separated_list0!(
+                complete!(
                     delimited!(
                         multispace0,
                         tag!(","),
                         multispace0
-                    ),
-                    column_name_parser
-                )
-            )
-            | do_parse!(
-                name: column_name_parser >>
-                (vec![name])
+                    )
+                ),
+                column_name_parser
             )
         )
     )
