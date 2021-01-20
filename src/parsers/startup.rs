@@ -10,9 +10,6 @@
 ///
 
 use std::result::Result;
-use nom::number::complete::{
-    le_i32
-};
 
 use crate::parsers::parser_error::ParserError;
 
@@ -23,14 +20,16 @@ pub struct Startup<'a> {
     pub payload: Option<&'a str>,
 }
 
+named!(read_byte<u8>, bits!(take_bits!(4u8)));
+
 /* Startup package: int32 len | int32 protocol | payload */
 named!(startup_parser<&[u8], Startup>,
     do_parse!(
-        len: le_i32 >>
-        version: le_i32 >>
+        len: read_byte >>
+        version: read_byte >>
         (Startup {
-            len: len,
-            protocol_version: version,
+            len: len as i32,
+            protocol_version: version as i32,
             payload: None,
         })
     )
