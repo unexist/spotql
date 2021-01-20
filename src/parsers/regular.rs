@@ -10,13 +10,7 @@
 ///
 
 use std::result::Result;
-use std::str::from_utf8;
-use nom::number::complete::{
-    le_i32
-};
-use nom::character::complete::{
-    anychar
-};
+use nom::number::Endianness;
 
 use crate::parsers::parser_error::ParserError;
 
@@ -29,17 +23,16 @@ pub struct Regular<'a> {
 
 /* Regular package: char tag | int32 len | payload | \0 */
 named!(regular_parser<&[u8], Regular>,
-    do_parse!(
-        tag: anychar >>
-        len: le_i32 >>
-        payload: opt!(map_res!(
-            terminated!(take_while!(|b: u8| b != 0), tag!([0])), from_utf8
-        )) >>
-        (Regular {
-            tag: tag,
-            len: len,
-            payload: payload,
-        })
+    dbg_dmp!(
+        do_parse!(
+            tag: i32!(Endianness::Big) >>
+            len: i32!(Endianness::Big) >>
+            (Regular {
+                tag: 'N', //std::char::from_u32(tag as u32).unwrap(),
+                len: len,
+                payload: None,
+            })
+        )
     )
 );
 

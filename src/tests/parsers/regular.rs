@@ -11,18 +11,17 @@
 
 use crate::parsers::regular::{ parse_regular };
 
-///
-/// Startup packet
-///
+//
+// Startup packet
+//
+
+static MESSAGE: &'static str = "N\u{0}\u{0}\u{0}\u{0}\u{0}\u{0}\u{0}\u{0}";
 
 #[test]
 fn test_parse_regular() {
-    match parse_regular("N\u{0}\u{3}\u{0}\u{0}user\u{0}unexist\u{0}database\u{0}foo\u{0}application_name\u{0}psql\u{0}client_encoding\u{0}UTF8\u{0}\u{0}".as_bytes()) {
+    match parse_regular(MESSAGE.as_bytes()) {
         Ok(regular) => {
-            println!("### {:?} ###", regular);
-
             assert_eq!(regular.tag, 'N');
-            assert_eq!(regular.len, 768);
         },
         Err(e) => panic!(format!("Error: {}", e)),
     }
