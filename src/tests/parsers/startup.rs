@@ -15,8 +15,8 @@ use crate::parsers::startup::{ parse_startup };
 // Startup packet
 //
 
-static MESSAGE: &'static str = "\u{0}\u{0}\u{0}N\u{0}\u{3}\u{0}\u{0} \
-    user\u{0}unexist\u{0}database\u{0}foo\u{0}application_name\u{0}
+static MESSAGE: &'static str = "\u{0}\u{0}\u{0}N\u{0}\u{3}\u{0}\u{0}\
+    user\u{0}unexist\u{0}database\u{0}foo\u{0}application_name\u{0}\
     psql\u{0}client_encoding\u{0}UTF8\u{0}\u{0}";
 
 static PROTOCOL_VERSION: i32 = 196608;
@@ -31,6 +31,12 @@ fn test_parse_startup() {
 
             match startup.payload {
                 Some(list) => {
+                    assert_eq!(list,
+                        vec!["user", "unexist", "database",
+                             "foo", "application_name",
+                             "psql", "client_encoding", "UTF8",
+                        ]
+                    );
                     assert_eq!(list.len(), 8);
                 },
                 None => unreachable!()

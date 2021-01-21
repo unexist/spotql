@@ -12,7 +12,7 @@
 use std::result::Result;
 use std::str::from_utf8;
 use nom::character::complete::{
-    alphanumeric1,
+    alphanumeric0,
 };
 use nom::number::Endianness;
 
@@ -32,20 +32,19 @@ named!(startup_parser<&[u8], Startup>,
             len: i32!(Endianness::Big) >>
             version: i32!(Endianness::Big) >>
             payload: opt!(
-                terminated!(
-                    separated_list0!(
-                        tag!([0]),
-                        alphanumeric1
-                    ),
-                    tag!([0])
+                separated_list0!(
+                    tag!([0]),
+                    alt!(
+                        is_a!("_")
+                        | alphanumeric0
+                    )
+                    //is_a!("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_01234567890")
                 )
-             ) >>
+            ) >>
             (Startup {
                 len: len,
                 protocol_version: version,
                 payload: if let Some(list) = payload {
-                    println!("{:?}", list);
-
                     Some(list.into_iter().map(|s| from_utf8(s).unwrap()).collect())
                 } else {
                     None
