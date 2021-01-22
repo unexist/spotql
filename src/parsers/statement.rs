@@ -9,6 +9,7 @@
 /// See the file LICENSE for details.
 ///
 
+use std::str;
 use nom::character::complete::{
     multispace0,
     alphanumeric1,
@@ -32,7 +33,7 @@ pub struct Statement<'a> {
 // Statement parser
 //
 
-named!(verb_parser<&str, Verb>,
+named!(verb_parser<&[u8], Verb>,
     delimited!(
         multispace0,
         alt!(
@@ -43,18 +44,20 @@ named!(verb_parser<&str, Verb>,
     )
 );
 
-named!(column_name_parser<&str, &str>,
-    delimited!(
-        multispace0,
-        alt!(
-            tag!("*")
-            | alphanumeric1
-        ),
-        multispace0
+named!(column_name_parser<&[u8], &str>,
+    map_res!(
+        delimited!(
+            multispace0,
+            alt!(
+                tag!("*")
+                | alphanumeric1
+            ),
+            multispace0
+        ), str::from_utf8
     )
 );
 
-named!(column_parser<&str, Vec<&str>>,
+named!(column_parser<&[u8], Vec<&str>>,
     complete!(
         dbg_dmp!(
             separated_list0!(
@@ -71,24 +74,26 @@ named!(column_parser<&str, Vec<&str>>,
     )
 );
 
-named!(table_parser<&str, &str>,
+named!(table_parser<&[u8], &str>,
     complete!(
-        preceded!(
-            delimited!(
-                multispace0,
-                tag!("from"),
-                multispace0
-            ),
-            delimited!(
-                multispace0,
-                alphanumeric1,
-                multispace0
-            )
+        map_res!(
+            preceded!(
+                delimited!(
+                    multispace0,
+                    tag!("from"),
+                    multispace0
+                ),
+                delimited!(
+                    multispace0,
+                    alphanumeric1,
+                    multispace0
+                )
+            ), str::from_utf8
         )
     )
 );
 
-named!(pub statement_parser<&str, Statement>,
+named!(pub statement_parser<&[u8], Statement>,
     do_parse!(
         verb: verb_parser >>
         columns: opt!(column_parser) >>
