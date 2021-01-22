@@ -10,8 +10,8 @@
 ///
 
 pub mod startup;
+pub mod query;
 pub mod statement;
-pub mod regular;
 pub mod auth;
 pub mod parser_error;
 pub mod message;

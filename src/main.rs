@@ -62,9 +62,14 @@ async fn main() {
                                 socket.write_u8('R' as u8).await.ok();
                                 socket.write_i32(8).await.ok();
                                 socket.write_i32(0).await.ok();
+
+                                /* Tell ready for query */
+                                socket.write_u8('Z' as u8).await.ok();
+                                socket.write_i32(5).await.ok();
+                                socket.write_u8('I' as u8).await.ok();
                             },
-                            Message::Regular(regular) => {
-                                println!("Parsed regular message: {:?}", regular);
+                            Message::Query(query) => {
+                                println!("Parsed query message: {:?}", query);
                             },
                             #[allow(unreachable_patterns)]
                             _ => unreachable!()

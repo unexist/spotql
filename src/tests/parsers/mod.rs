@@ -10,6 +10,6 @@
 ///
 
 mod startup;
+mod query;
 mod statement;
-mod regular;
 mod auth;
