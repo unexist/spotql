@@ -66,6 +66,7 @@ async fn main() {
                             Message::Regular(regular) => {
                                 println!("Parsed regular message: {:?}", regular);
                             },
+                            #[allow(unreachable_patterns)]
                             _ => unreachable!()
                         };
                     },
