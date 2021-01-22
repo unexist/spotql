@@ -9,14 +9,8 @@
 /// See the file LICENSE for details.
 ///
 
-use std::result::Result;
 use std::str::from_utf8;
-use nom::character::complete::{
-    alphanumeric0,
-};
 use nom::number::Endianness;
-
-use crate::parsers::parser_error::ParserError;
 
 #[derive(Debug)]
 pub struct Startup<'a> {
@@ -25,8 +19,8 @@ pub struct Startup<'a> {
     pub payload: Option<Vec<&'a str>>,
 }
 
-/* Startup package: int32 len | int32 protocol version | key \0 | value \0 | \0 */
-named!(startup_parser<&[u8], Startup>,
+/* Startup message: int32 len | int32 protocol version | key \0 | value \0 | \0 */
+named!(pub startup_parser<&[u8], Startup>,
     dbg_dmp!(
         do_parse!(
             len: i32!(Endianness::Big) >>
@@ -34,11 +28,7 @@ named!(startup_parser<&[u8], Startup>,
             payload: opt!(
                 separated_list0!(
                     tag!([0]),
-                    alt!(
-                        is_a!("_")
-                        | alphanumeric0
-                    )
-                    //is_a!("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_01234567890")
+                    is_a!("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_01234567890")
                 )
             ) >>
             (Startup {
@@ -53,12 +43,3 @@ named!(startup_parser<&[u8], Startup>,
         )
     )
 );
-
-pub fn parse_startup(input: &[u8]) -> Result<Startup, ParserError> {
-    match startup_parser(input) {
-        Ok((_, startup)) => Ok(startup),
-        Err(e) => Err(ParserError {
-            message: e.to_string()
-        })
-    }
-}

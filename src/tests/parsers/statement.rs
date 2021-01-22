@@ -9,7 +9,17 @@
 /// See the file LICENSE for details.
 ///
 
-use crate::parsers::statement::{ Verb, parse_statement };
+use crate::parsers::statement::{ statement_parser, Statement, Verb };
+use crate::parsers::parser_error::ParserError;
+
+fn parse_statement(input: &str) -> Result<Statement, ParserError> {
+    match statement_parser(input) {
+        Ok((_, stmt)) => Ok(stmt),
+        Err(e) => Err(ParserError {
+            message: e.to_string()
+        })
+    }
+}
 
 ///
 /// Simple verbs

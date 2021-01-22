@@ -1,7 +1,7 @@
 ///
 /// @package Spotql
 ///
-/// @file Spotql regular parser
+/// @file Spotql auth parser
 /// @copyright (c) 2021 Christoph Kappel <christoph@unexist.dev>
 /// @version $Id$
 ///
@@ -13,19 +13,19 @@ use nom::number::Endianness;
 use nom::character::complete::anychar;
 
 #[derive(Debug)]
-pub struct Regular<'a> {
+pub struct Auth<'a> {
     pub tag: char,
     pub len: i32,
     pub payload: Option<&'a str>,
 }
 
-/* Regular message: char tag | int32 len | payload | \0 */
-named!(pub regular_parser<&[u8], Regular>,
+/* Auth message: char tag | int32 len | payload | \0 */
+named!(pub auth_parser<&[u8], Auth>,
     dbg_dmp!(
         do_parse!(
             tag: anychar >>
             len: i32!(Endianness::Big) >>
-            (Regular {
+            (Auth {
                 tag: tag,
                 len: len,
                 payload: None,

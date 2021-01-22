@@ -12,3 +12,4 @@
 mod startup;
 mod statement;
 mod regular;
+mod auth;

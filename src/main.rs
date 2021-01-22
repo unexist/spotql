@@ -21,8 +21,9 @@ use tokio::net::TcpListener;
 #[allow(unused_imports)]
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-#[allow(unused_imports)]
-use parsers::startup::{Startup, parse_startup};
+use parsers::message::{ Message, parse_message };
+
+use std::str::from_utf8;
 
 #[tokio::main]
 async fn main() {
@@ -41,17 +42,35 @@ async fn main() {
                     return;
                 }
 
-                println!("Read {} bytes", n);
+                println!("Read: n={:?}, data={:?}", n, from_utf8(&buf[0..n]).unwrap());
 
-                let client = parse_startup(&buf[0..n]);
+                match parse_message(&buf[0..n]) {
+                    Ok(result) => {
+                        match result {
+                            Message::Startup(startup) => {
+                                println!("Parsed startup message: {:?}", startup);
 
-                println!("Client {:?}", client)
+                                /* Ask for password */
+                                socket.write_u8('R' as u8).await.ok();
+                                socket.write_i32(8).await.ok();
+                                socket.write_i32(3).await.ok();
+                            },
+                            Message::Auth(auth) => {
+                                println!("Parsed auth message: {:?}", auth);
 
-                /*println!("{:?}", String::from_utf8_lossy(&buf[0..n]));
-
-                let reply = b"AuthenticationCleartextPassword";
-
-                socket.write_all(&reply[..]).await.expect("Failed to write data to socket");*/
+                                /* Tell password is ok */
+                                socket.write_u8('R' as u8).await.ok();
+                                socket.write_i32(8).await.ok();
+                                socket.write_i32(0).await.ok();
+                            },
+                            Message::Regular(regular) => {
+                                println!("Parsed regular message: {:?}", regular);
+                            },
+                            _ => unreachable!()
+                        };
+                    },
+                    Err(e) => eprintln!("Error {:?}", e)
+                }
             }
         });
     }

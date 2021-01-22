@@ -9,13 +9,10 @@
 /// See the file LICENSE for details.
 ///
 
-use std::result::Result;
 use nom::character::complete::{
     multispace0,
     alphanumeric1,
 };
-
-use crate::parsers::parser_error::ParserError;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Verb {
@@ -91,7 +88,7 @@ named!(table_parser<&str, &str>,
     )
 );
 
-named!(statement_parser<&str, Statement>,
+named!(pub statement_parser<&str, Statement>,
     do_parse!(
         verb: verb_parser >>
         columns: opt!(column_parser) >>
@@ -104,12 +101,3 @@ named!(statement_parser<&str, Statement>,
         })
     )
 );
-
-pub fn parse_statement(input: &str) -> Result<Statement, ParserError> {
-    match statement_parser(input) {
-        Ok((_, stmt)) => Ok(stmt),
-        Err(e) => Err(ParserError {
-            message: e.to_string()
-        })
-    }
-}

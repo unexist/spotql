@@ -9,10 +9,19 @@
 /// See the file LICENSE for details.
 ///
 
-use crate::parsers::startup::{ parse_startup };
+use crate::parsers::startup::{ Startup, startup_parser };
+use crate::parsers::parser_error::ParserError;
 
+fn parse_startup(input: &[u8]) -> Result<Startup, ParserError> {
+    match startup_parser(input) {
+        Ok((_, startup)) => Ok(startup),
+        Err(e) => Err(ParserError {
+            message: e.to_string()
+        })
+    }
+}
 //
-// Startup packet
+// Startup message
 //
 
 static MESSAGE: &'static str = "\u{0}\u{0}\u{0}N\u{0}\u{3}\u{0}\u{0}\
