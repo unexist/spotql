@@ -31,6 +31,7 @@ fn test_parse_auth() {
     match parse_auth(MESSAGE.as_bytes()) {
         Ok(regular) => {
             assert_eq!(regular.tag, 'p');
+            assert_eq!(regular.payload, Some("test"));
         },
         Err(e) => panic!(format!("Error: {}", e)),
     }

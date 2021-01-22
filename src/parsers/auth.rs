@@ -9,8 +9,9 @@
 /// See the file LICENSE for details.
 ///
 
+use std::str;
 use nom::number::Endianness;
-use nom::character::complete::anychar;
+use nom::character::complete::{ anychar, alphanumeric1 };
 
 #[derive(Debug)]
 pub struct Auth<'a> {
@@ -25,10 +26,13 @@ named!(pub auth_parser<&[u8], Auth>,
         do_parse!(
             tag: anychar >>
             len: i32!(Endianness::Big) >>
+            payload: opt!(
+                map_res!(alphanumeric1, str::from_utf8)
+            ) >>
             (Auth {
                 tag: tag,
                 len: len,
-                payload: None,
+                payload: payload
             })
         )
     )
