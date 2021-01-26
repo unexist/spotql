@@ -23,6 +23,7 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use parsers::message::{ Message, parse_message };
 
+use std::mem;
 use std::str::from_utf8;
 
 #[tokio::main]
@@ -70,6 +71,36 @@ async fn main() {
                             },
                             Message::Query(query) => {
                                 println!("Parsed query message: {:?}", query);
+
+                                /* Tell row description */
+                                socket.write_u8('T' as u8).await.ok();
+                                socket.write_i32(29).await.ok();
+                                socket.write_i16(1).await.ok();
+                                socket.write(b"name").await.ok();
+                                socket.write_i32(0).await.ok();
+                                socket.write_i16(0).await.ok();
+                                socket.write_i32(0).await.ok();
+                                socket.write_i16(-1).await.ok();
+                                socket.write_i32(0).await.ok();
+                                socket.write_i16(0).await.ok();
+
+                                /* Tell data rows */
+                                socket.write_u8('D' as u8).await.ok();
+                                socket.write_i32(11).await.ok();
+                                socket.write_i16(0).await.ok();
+                                socket.write_i32(0).await.ok();
+
+                                let message = b"SELECT 0";
+
+                                /* Tell command complete */
+                                socket.write_u8('C' as u8).await.ok();
+                                socket.write_i32(mem::size_of_val(message) as i32).await.ok();
+                                socket.write(message).await.ok();
+
+                                /* Tell ready for query */
+                                socket.write_u8('Z' as u8).await.ok();
+                                socket.write_i32(5).await.ok();
+                                socket.write_u8('I' as u8).await.ok();
                             },
                             #[allow(unreachable_patterns)]
                             _ => unreachable!()

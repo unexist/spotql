@@ -9,9 +9,8 @@
 /// See the file LICENSE for details.
 ///
 
-use std::str;
 use nom::number::Endianness;
-use nom::character::complete::{ anychar, alphanumeric1 };
+use nom::character::complete::anychar;
 
 use crate::parsers::statement::{ Statement, statement_parser };
 
@@ -21,8 +20,6 @@ pub struct Query<'a> {
     pub len: i32,
     pub statement: Option<Statement<'a>>,
 }
-
-named!(converter<&[u8], &str>, map_res!(alphanumeric1, str::from_utf8));
 
 /* Auth message: char tag | int32 len | payload | \0 */
 named!(pub query_parser<&[u8], Query>,
