@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/rust:latest¬
+      - image: cimg/rust:1.4.9
 
     environment:
       TZ: "/usr/share/zoneinfo/Europe/Paris"
