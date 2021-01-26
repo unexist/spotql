@@ -10,13 +10,14 @@
 ///
 
 use std::str::from_utf8;
+use std::collections::HashMap;
 use nom::number::Endianness;
 
 #[derive(Debug)]
 pub struct Startup<'a> {
     pub protocol_version: i32,
     pub len: i32,
-    pub payload: Option<Vec<&'a str>>,
+    pub parameters: Option<HashMap<&'a str, &'a str>>,
 }
 
 /* Startup message: int32 len | int32 protocol version | key \0 | value \0 | \0 */
@@ -34,8 +35,17 @@ named!(pub startup_parser<&[u8], Startup>,
             (Startup {
                 len: len,
                 protocol_version: version,
-                payload: if let Some(list) = payload {
-                    Some(list.into_iter().map(|s| from_utf8(s).unwrap()).collect())
+                parameters: if let Some(list) = payload {
+                    let mut params: HashMap<&str, &str> = HashMap::new();
+                    let mut iter = list.iter();
+
+                    while let Some(key) = iter.next() {
+                        if let Some(value) = iter.next() {
+                            params.insert(from_utf8(key).unwrap(), from_utf8(value).unwrap());
+                        }
+                    }
+
+                    Some(params)
                 } else {
                     None
                 },

@@ -36,17 +36,13 @@ fn test_parse_startup() {
         Ok(startup) => {
             assert_eq!(startup.len, 78);
             assert_eq!(startup.protocol_version, PROTOCOL_VERSION);
-            assert!(startup.payload.is_some());
 
-            match startup.payload {
-                Some(list) => {
-                    assert_eq!(list,
-                        vec!["user", "unexist", "database",
-                             "foo", "application_name",
-                             "psql", "client_encoding", "UTF8",
-                        ]
-                    );
-                    assert_eq!(list.len(), 8);
+            match startup.parameters {
+                Some(params) => {
+                    assert_eq!(params.get(&"user"), Some(&"unexist"));
+                    assert_eq!(params.get(&"database"), Some(&"foo"));
+                    assert_eq!(params.get(&"application_name"), Some(&"psql"));
+                    assert_eq!(params.get(&"client_encoding"), Some(&"UTF8"));
                 },
                 None => unreachable!()
             }
