@@ -73,28 +73,35 @@ async fn main() {
                                 println!("Parsed query message: {:?}", query);
 
                                 /* Tell row description */
+                                let message = b"name\0";
+
                                 socket.write_u8('T' as u8).await.ok();
-                                socket.write_i32(27).await.ok();
-                                socket.write_i16(1).await.ok();
-                                socket.write(b"name").await.ok();
-                                socket.write_i32(0).await.ok();
-                                socket.write_i16(0).await.ok();
-                                socket.write_i32(0).await.ok();
-                                socket.write_i16(-1).await.ok();
-                                socket.write_i32(0).await.ok();
-                                socket.write_i16(0).await.ok();
+                                socket.write_i32(29).await.ok(); // Message len
+                                socket.write_i16(1).await.ok(); // Number of columns
+
+                                socket.write(message).await.ok();
+
+                                socket.write_i32(0).await.ok(); // Table OID
+                                socket.write_i16(0).await.ok(); // Attribute number of column
+                                socket.write_i32(25).await.ok(); // Object OID of type: text = 25
+                                socket.write_i16(-1).await.ok(); // Data type len
+                                socket.write_i32(0).await.ok(); // Data type modifier
+                                socket.write_i16(0).await.ok(); // Format code: text = 0, binary = 1
 
                                 /* Tell data rows */
-                                socket.write_u8('D' as u8).await.ok();
-                                socket.write_i32(11).await.ok();
-                                socket.write_i16(0).await.ok();
-                                socket.write_i32(0).await.ok();
+                                let message = b"test\0";
 
-                                let message = b"SELECT 0";
+                                socket.write_u8('D' as u8).await.ok();
+                                socket.write_i32(4 + 2 + 4 + mem::size_of_val(message) as i32).await.ok(); // Message len
+                                socket.write_i16(1).await.ok(); // Number of columns
+                                socket.write_i32(mem::size_of_val(message) as i32).await.ok(); // Length of column value without self
+                                socket.write(message).await.ok();
 
                                 /* Tell command complete */
+                                let message = b"SELECT 0\0";
+
                                 socket.write_u8('C' as u8).await.ok();
-                                socket.write_i32(mem::size_of_val(message) as i32).await.ok();
+                                socket.write_i32(4 + mem::size_of_val(message) as i32).await.ok();
                                 socket.write(message).await.ok();
 
                                 /* Tell ready for query */
