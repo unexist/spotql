@@ -74,7 +74,7 @@ async fn main() {
 
                                 /* Tell row description */
                                 socket.write_u8('T' as u8).await.ok();
-                                socket.write_i32(29).await.ok();
+                                socket.write_i32(27).await.ok();
                                 socket.write_i16(1).await.ok();
                                 socket.write(b"name").await.ok();
                                 socket.write_i32(0).await.ok();
