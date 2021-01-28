@@ -57,8 +57,8 @@ named!(combinator_parser<&[u8], Combinator>,
         delimited!(
             multispace0,
             alt!(
-                value!(Combinator::AND, tag!("&&"))
-                | value!(Combinator::OR, tag!("||"))
+                value!(Combinator::AND, tag!("and"))
+                | value!(Combinator::OR, tag!("or"))
             ),
             multispace0
         )
