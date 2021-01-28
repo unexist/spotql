@@ -12,4 +12,5 @@
 mod startup;
 mod query;
 mod statement;
+mod predicate;
 mod auth;

@@ -44,7 +44,7 @@ named!(verb_parser<&[u8], Verb>,
     )
 );
 
-named!(column_name_parser<&[u8], &str>,
+named!(pub column_name_parser<&[u8], &str>,
     map_res!(
         delimited!(
             multispace0,
