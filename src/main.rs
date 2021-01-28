@@ -78,9 +78,7 @@ async fn main() {
                                 socket.write_u8('T' as u8).await.ok();
                                 socket.write_i32(29).await.ok(); // Message len
                                 socket.write_i16(1).await.ok(); // Number of columns
-
                                 socket.write(message).await.ok();
-
                                 socket.write_i32(0).await.ok(); // Table OID
                                 socket.write_i16(0).await.ok(); // Attribute number of column
                                 socket.write_i32(25).await.ok(); // Object OID of type: text = 25
