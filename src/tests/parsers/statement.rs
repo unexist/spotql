@@ -10,6 +10,7 @@
 ///
 
 use crate::parsers::statement::{ statement_parser, Statement, Verb };
+use crate::parsers::predicate::{ Operator, Combinator };
 use crate::parsers::parser_error::ParserError;
 
 fn parse_statement(input: &str) -> Result<Statement, ParserError> {
@@ -103,6 +104,20 @@ fn test_parse_simple_select_statement_with_single_column_and_table() {
 /// Predicates
 ///
 
+macro_rules! test_predicate {
+    ($predicate:stmt, $left:expr, $op:expr, $right:expr, $combi:expr) => {
+        match {{ $predicate }} {
+            Some(pred) => {
+                assert_eq!(pred.left_hand, $left);
+                assert_eq!(pred.op, $op);
+                assert_eq!(pred.right_hand, $right);
+                assert_eq!(pred.combinator, $combi);
+            },
+            None => unreachable!()
+        }
+    };
+}
+
 #[test]
 fn test_parse_simple_select_statement_with_single_column_and_table_and_simple_predicate() {
     match parse_statement("select * from table where a = b") {
@@ -115,6 +130,8 @@ fn test_parse_simple_select_statement_with_single_column_and_table_and_simple_pr
             match stmt.predicates {
                 Some(list) => {
                     assert_eq!(list.len(), 1);
+
+                    test_predicate!(list.get(0), "a", Operator::EQUAL, "b", None);
                 },
                 None => unreachable!(),
             }
@@ -122,10 +139,6 @@ fn test_parse_simple_select_statement_with_single_column_and_table_and_simple_pr
         Err(e) => panic!(format!("Error: {}", e)),
     }
 }
-
-///
-/// Predicates
-///
 
 #[test]
 fn test_parse_simple_select_statement_with_single_column_and_table_and_combi_predicate() {
@@ -139,6 +152,9 @@ fn test_parse_simple_select_statement_with_single_column_and_table_and_combi_pre
             match stmt.predicates {
                 Some(list) => {
                     assert_eq!(list.len(), 2);
+
+                    test_predicate!(list.get(0), "a", Operator::EQUAL, "b", Some(Combinator::AND));
+                    test_predicate!(list.get(1), "b", Operator::EQUAL, "a", None);
                 },
                 None => unreachable!(),
             }
