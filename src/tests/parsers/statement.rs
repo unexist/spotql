@@ -98,3 +98,51 @@ fn test_parse_simple_select_statement_with_single_column_and_table() {
         Err(e) => panic!(format!("Error: {}", e)),
     }
 }
+
+///
+/// Predicates
+///
+
+#[test]
+fn test_parse_simple_select_statement_with_single_column_and_table_and_simple_predicate() {
+    match parse_statement("select * from table where a = b") {
+        Ok(stmt) => {
+            assert_eq!(stmt.verb, Verb::SELECT);
+            assert_eq!(stmt.columns, Some(vec!["*"]));
+            assert_eq!(stmt.table, Some("table"));
+            assert!(stmt.predicates.is_some());
+
+            match stmt.predicates {
+                Some(list) => {
+                    assert_eq!(list.len(), 1);
+                },
+                None => unreachable!(),
+            }
+        },
+        Err(e) => panic!(format!("Error: {}", e)),
+    }
+}
+
+///
+/// Predicates
+///
+
+#[test]
+fn test_parse_simple_select_statement_with_single_column_and_table_and_combi_predicate() {
+    match parse_statement("select * from table where a = b and b = a") {
+        Ok(stmt) => {
+            assert_eq!(stmt.verb, Verb::SELECT);
+            assert_eq!(stmt.columns, Some(vec!["*"]));
+            assert_eq!(stmt.table, Some("table"));
+            assert!(stmt.predicates.is_some());
+
+            match stmt.predicates {
+                Some(list) => {
+                    assert_eq!(list.len(), 2);
+                },
+                None => unreachable!(),
+            }
+        },
+        Err(e) => panic!(format!("Error: {}", e)),
+    }
+}

@@ -15,6 +15,8 @@ use nom::character::complete::{
     alphanumeric1,
 };
 
+use crate::parsers::predicate::{ Predicate, predicate_parser };
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Verb {
     SELECT,
@@ -26,7 +28,7 @@ pub struct Statement<'a> {
     pub verb: Verb,
     pub columns: Option<Vec<&'a str>>,
     pub table: Option<&'a str>,
-    pub conditions: Option<Vec<&'a str>>,
+    pub predicates: Option<Vec<Predicate<'a>>>,
 }
 
 //
@@ -93,16 +95,34 @@ named!(table_parser<&[u8], &str>,
     )
 );
 
+named!(predicate_list_parser<&[u8], Vec<Predicate>>,
+    complete!(
+        preceded!(
+            delimited!(
+                multispace0,
+                tag!("where"),
+                multispace0
+            ),
+            dbg_dmp!(
+                many1!(
+                    complete!(predicate_parser)
+                )
+            )
+        )
+    )
+);
+
 named!(pub statement_parser<&[u8], Statement>,
     do_parse!(
         verb: verb_parser >>
         columns: opt!(column_parser) >>
         table: opt!(table_parser) >>
+        predicates: opt!(predicate_list_parser) >>
         (Statement {
             verb: verb,
             columns: columns,
             table: table,
-            conditions: None,
+            predicates: predicates,
         })
     )
 );
