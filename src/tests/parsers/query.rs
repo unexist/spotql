@@ -22,7 +22,7 @@ fn parse_query(input: &[u8]) -> Result<Query, ParserError> {
     }
 }
 //
-// Auth message
+// Query message
 //
 
 static MESSAGE: &'static str = "Q\u{0}\u{0}\u{0}\u{19}select * from songs;\u{0}";

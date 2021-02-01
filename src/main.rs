@@ -107,6 +107,9 @@ async fn main() {
                                 socket.write_i32(5).await.ok();
                                 socket.write_u8('I' as u8).await.ok();
                             },
+                            Message::Terminate(terminate) => {
+                                println!("Parsed terminate message: {:?}", terminate);
+                            },
                             #[allow(unreachable_patterns)]
                             _ => unreachable!()
                         };

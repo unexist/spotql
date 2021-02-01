@@ -17,3 +17,4 @@ pub mod predicate;
 pub mod auth;
 pub mod parser_error;
 pub mod message;
+pub mod terminate;

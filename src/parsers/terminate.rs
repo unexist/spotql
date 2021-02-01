@@ -1,7 +1,7 @@
 ///
 /// @package Spotql
 ///
-/// @file Spotql query parser
+/// @file Spotql terminate parser
 /// @copyright (c) 2021 Christoph Kappel <christoph@unexist.dev>
 /// @version $Id$
 ///
@@ -12,26 +12,21 @@
 use nom::number::Endianness;
 use nom::character::complete::anychar;
 
-use crate::parsers::statement::{ Statement, statement_parser };
-
 #[derive(Debug)]
-pub struct Query<'a> {
+pub struct Terminate {
     pub tag: char,
     pub len: i32,
-    pub statement: Option<Statement<'a>>,
 }
 
-/* Auth message: char tag | int32 len | payload | \0 */
-named!(pub query_parser<&[u8], Query>,
+/* Terminate message: char tag | int32 len | \0 */
+named!(pub terminate_parser<&[u8], Terminate>,
     dbg_dmp!(
         do_parse!(
             tag: anychar >>
             len: i32!(Endianness::Big) >>
-            stmt: opt!(statement_parser) >>
-            (Query {
+            (Terminate {
                 tag: tag,
                 len: len,
-                statement: stmt
             })
         )
     )

@@ -14,6 +14,7 @@ use crate::parsers::{
     startup::{ Startup, startup_parser },
     auth::{ Auth, auth_parser },
     query::{ Query, query_parser },
+    terminate::{ Terminate, terminate_parser },
 };
 
 #[derive(Debug)]
@@ -21,12 +22,14 @@ pub enum Message<'a> {
     Startup(Startup<'a>),
     Auth(Auth<'a>),
     Query(Query<'a>),
+    Terminate(Terminate),
 }
 
 named!(message_parser<&[u8], Message>,
     switch!(peek!(take!(1)),
         b"\0" => map!(startup_parser, |m: Startup| Message::Startup(m))
         | b"p" => map!(auth_parser, |m: Auth| Message::Auth(m))
+        | b"X" => map!(terminate_parser, |m: Terminate| Message::Terminate(m))
         | _ => map!(query_parser, |m: Query| Message::Query(m))
     )
 );
