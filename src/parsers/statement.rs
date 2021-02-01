@@ -16,6 +16,7 @@ use nom::character::complete::{
 };
 
 use crate::parsers::predicate::{ Predicate, predicate_parser };
+use crate::parsers::column::{ Column, column_list_parser };
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Verb {
@@ -26,7 +27,7 @@ pub enum Verb {
 #[derive(Debug)]
 pub struct Statement<'a> {
     pub verb: Verb,
-    pub columns: Option<Vec<&'a str>>,
+    pub columns: Option<Vec<Column<'a>>>,
     pub table: Option<&'a str>,
     pub predicates: Option<Vec<Predicate<'a>>>,
 }
@@ -43,36 +44,6 @@ named!(verb_parser<&[u8], Verb>,
             | value!(Verb::UPDATE, tag!("update"))
         ),
         multispace0
-    )
-);
-
-named!(pub column_name_parser<&[u8], &str>,
-    map_res!(
-        delimited!(
-            multispace0,
-            alt!(
-                tag!("*")
-                | alphanumeric1
-            ),
-            multispace0
-        ), str::from_utf8
-    )
-);
-
-named!(column_parser<&[u8], Vec<&str>>,
-    complete!(
-        dbg_dmp!(
-            separated_list0!(
-                complete!(
-                    delimited!(
-                        multispace0,
-                        tag!(","),
-                        multispace0
-                    )
-                ),
-                column_name_parser
-            )
-        )
     )
 );
 
@@ -115,9 +86,10 @@ named!(predicate_list_parser<&[u8], Vec<Predicate>>,
 named!(pub statement_parser<&[u8], Statement>,
     do_parse!(
         verb: verb_parser >>
-        columns: opt!(column_parser) >>
+        columns: opt!(column_list_parser) >>
         table: opt!(table_parser) >>
         predicates: opt!(predicate_list_parser) >>
+        tag!(";") >>
         (Statement {
             verb: verb,
             columns: columns,

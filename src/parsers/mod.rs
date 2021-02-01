@@ -12,6 +12,7 @@
 pub mod startup;
 pub mod query;
 pub mod statement;
+pub mod column;
 pub mod predicate;
 pub mod auth;
 pub mod parser_error;

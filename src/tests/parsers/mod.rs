@@ -14,3 +14,4 @@ mod query;
 mod statement;
 mod predicate;
 mod auth;
+mod column;

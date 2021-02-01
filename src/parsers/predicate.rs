@@ -13,7 +13,7 @@ use nom::character::complete::{
     multispace0,
 };
 
-use crate::parsers::statement::{ column_name_parser };
+use crate::parsers::column::{ column_name_parser };
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Operator {

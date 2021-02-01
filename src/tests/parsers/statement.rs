@@ -28,7 +28,7 @@ fn parse_statement(input: &str) -> Result<Statement, ParserError> {
 
 #[test]
 fn test_parse_simple_select_statement() {
-    match parse_statement("select") {
+    match parse_statement("select;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);
         },
@@ -38,7 +38,7 @@ fn test_parse_simple_select_statement() {
 
 #[test]
 fn test_parse_simple_update_statement() {
-    match parse_statement("update") {
+    match parse_statement("update;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::UPDATE);
         },
@@ -50,12 +50,34 @@ fn test_parse_simple_update_statement() {
 /// Columns
 ///
 
+macro_rules! test_column {
+    ($column:stmt, $name:expr, $alias:expr) => {
+        match {{ $column }} {
+            Some(col) => {
+                assert_eq!(col.name, $name);
+                assert_eq!(col.alias, $alias);
+            },
+            None => unreachable!()
+        }
+    };
+}
+
 #[test]
 fn test_parse_simple_select_statement_with_single_column() {
-    match parse_statement("select *") {
+    match parse_statement("select *;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);
-            assert_eq!(stmt.columns, Some(vec!["*"]));
+            assert!(stmt.columns.is_some());
+
+            match stmt.columns {
+                Some(list) => {
+                    assert_eq!(list.len(), 1);
+
+                    test_column!(list.get(0), "*", None);
+                },
+                None => unreachable!(),
+            }
+
         },
         Err(e) => panic!(format!("Error: {}", e)),
     }
@@ -63,10 +85,19 @@ fn test_parse_simple_select_statement_with_single_column() {
 
 #[test]
 fn test_parse_simple_select_statement_with_single_column_with_as() {
-    match parse_statement("select * as all") {
+    match parse_statement("select a as all;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);
-            assert_eq!(stmt.columns, Some(vec!["*"]));
+            assert!(stmt.columns.is_some());
+
+            match stmt.columns {
+                Some(list) => {
+                    assert_eq!(list.len(), 1);
+
+                    test_column!(list.get(0), "a", Some("all"));
+                },
+                None => unreachable!(),
+            }
         },
         Err(e) => panic!(format!("Error: {}", e)),
     }
@@ -75,10 +106,20 @@ fn test_parse_simple_select_statement_with_single_column_with_as() {
 
 #[test]
 fn test_parse_simple_select_statement_with_multi_column() {
-    match parse_statement("select a, b") {
+    match parse_statement("select a, b;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);
-            assert_eq!(stmt.columns, Some(vec!["a", "b"]));
+            assert!(stmt.columns.is_some());
+
+            match stmt.columns {
+                Some(list) => {
+                    assert_eq!(list.len(), 2);
+
+                    test_column!(list.get(0), "a", None);
+                    test_column!(list.get(1), "b", None);
+                },
+                None => unreachable!(),
+            }
         },
         Err(e) => panic!(format!("Error: {}", e)),
     }
@@ -90,10 +131,20 @@ fn test_parse_simple_select_statement_with_multi_column() {
 
 #[test]
 fn test_parse_simple_select_statement_with_single_column_and_table() {
-    match parse_statement("select * from table") {
+    match parse_statement("select * from table;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);
-            assert_eq!(stmt.columns, Some(vec!["*"]));
+            assert!(stmt.columns.is_some());
+
+            match stmt.columns {
+                Some(list) => {
+                    assert_eq!(list.len(), 1);
+
+                    test_column!(list.get(0), "*", None);
+                },
+                None => unreachable!(),
+            }
+
             assert_eq!(stmt.table, Some("table"));
         },
         Err(e) => panic!(format!("Error: {}", e)),
@@ -120,10 +171,20 @@ macro_rules! test_predicate {
 
 #[test]
 fn test_parse_simple_select_statement_with_single_column_and_table_and_simple_predicate() {
-    match parse_statement("select * from table where a = b") {
+    match parse_statement("select * from table where a = b;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);
-            assert_eq!(stmt.columns, Some(vec!["*"]));
+            assert!(stmt.columns.is_some());
+
+            match stmt.columns {
+                Some(list) => {
+                    assert_eq!(list.len(), 1);
+
+                    test_column!(list.get(0), "*", None);
+                },
+                None => unreachable!(),
+            }
+
             assert_eq!(stmt.table, Some("table"));
             assert!(stmt.predicates.is_some());
 
@@ -142,10 +203,20 @@ fn test_parse_simple_select_statement_with_single_column_and_table_and_simple_pr
 
 #[test]
 fn test_parse_simple_select_statement_with_single_column_and_table_and_combi_predicate() {
-    match parse_statement("select * from table where a = b and b = a") {
+    match parse_statement("select * from table where a = b and b = a;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);
-            assert_eq!(stmt.columns, Some(vec!["*"]));
+            assert!(stmt.columns.is_some());
+
+            match stmt.columns {
+                Some(list) => {
+                    assert_eq!(list.len(), 1);
+
+                    test_column!(list.get(0), "*", None);
+                },
+                None => unreachable!(),
+            }
+
             assert_eq!(stmt.table, Some("table"));
             assert!(stmt.predicates.is_some());
 

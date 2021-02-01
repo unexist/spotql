@@ -34,11 +34,24 @@ fn test_parse_query() {
             assert_eq!(query.tag, 'Q');
             assert!(query.statement.is_some());
 
-            let stmnt = query.statement.unwrap();
+            let stmt = query.statement.unwrap();
 
-            assert_eq!(stmnt.verb, Verb::SELECT);
-            assert_eq!(stmnt.columns, Some(vec!["*"]));
-            assert_eq!(stmnt.table, Some("songs"));
+            assert_eq!(stmt.verb, Verb::SELECT);
+            assert!(stmt.columns.is_some());
+
+            match stmt.columns {
+                Some(cols) => {
+                    assert_eq!(cols.len(), 1);
+
+                    let col = cols.get(0).unwrap();
+
+                    assert_eq!(col.name, "*");
+                    assert!(col.alias.is_none());
+                },
+                None => unreachable!(),
+            }
+
+            assert_eq!(stmt.table, Some("songs"));
         },
         Err(e) => panic!(format!("Error: {}", e)),
     }
