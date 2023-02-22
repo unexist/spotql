@@ -74,10 +74,8 @@ named!(predicate_list_parser<&[u8], Vec<Predicate>>,
                 tag!("where"),
                 multispace0
             ),
-            dbg_dmp!(
-                many1!(
-                    complete!(predicate_parser)
-                )
+            many1!(
+                complete!(predicate_parser)
             )
         )
     )

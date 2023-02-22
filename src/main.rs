@@ -17,7 +17,7 @@ extern crate tokio;
 mod tests;
 mod parsers;
 
-use tokio::net::TcpListener;
+use tokio::net::{TcpListener, TcpStream };
 #[allow(unused_imports)]
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
@@ -25,6 +25,16 @@ use parsers::message::{ Message, parse_message };
 
 use std::mem;
 use std::str::from_utf8;
+use std::borrow::BorrowMut;
+
+async fn send_password_ok<T: BorrowMut<TcpStream>>(mut socket: T) {
+    let stream = socket.borrow_mut();
+
+    /* Tell password is ok */
+    stream.write_u8('R' as u8).await.ok();
+    stream.write_i32(8).await.ok();
+    stream.write_i32(0).await.ok();
+}
 
 #[tokio::main]
 async fn main() {
@@ -33,7 +43,6 @@ async fn main() {
     loop {
         let (mut socket, _) = listener.accept().await.unwrap();
 
-        tokio::spawn(async move {
             let mut buf = vec![0; 1024];
 
             loop {
@@ -45,6 +54,11 @@ async fn main() {
 
                 println!("Read: n={:?}, data={:?}", n, from_utf8(&buf[0..n]).unwrap());
 
+                process(socket).await {
+                    println!("An error occurred; error = {:?}", e);
+                }
+
+        tokio::spawn(async move {
                 match parse_message(&buf[0..n]) {
                     Ok(result) => {
                         match result {
@@ -60,9 +74,10 @@ async fn main() {
                                 println!("Parsed auth message: {:?}", auth);
 
                                 /* Tell password is ok */
-                                socket.write_u8('R' as u8).await.ok();
-                                socket.write_i32(8).await.ok();
-                                socket.write_i32(0).await.ok();
+                                //socket.write_u8('R' as u8).await.ok();
+                                //socket.write_i32(8).await.ok();
+                                //socket.write_i32(0).await.ok();
+                                send_password_ok(socket);
 
                                 /* Tell ready for query */
                                 socket.write_u8('Z' as u8).await.ok();
@@ -109,6 +124,8 @@ async fn main() {
                             },
                             Message::Terminate(terminate) => {
                                 println!("Parsed terminate message: {:?}", terminate);
+
+                                break;
                             },
                             #[allow(unreachable_patterns)]
                             _ => unreachable!()
