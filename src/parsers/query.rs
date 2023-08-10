@@ -2,7 +2,7 @@
 /// @package Spotql
 ///
 /// @file Spotql query parser
-/// @copyright (c) 2021 Christoph Kappel <christoph@unexist.dev>
+/// @copyright (c) 2021-present Christoph Kappel <christoph@unexist.dev>
 /// @version $Id$
 ///
 /// This program can be distributed under the terms of the GNU GPLv2.
