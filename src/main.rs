@@ -1,13 +1,13 @@
-///
-/// @package Spotql
-///
-/// @file Spotql main entry
-/// @copyright (c) 2021-present Christoph Kappel <christoph@unexist.dev>
-/// @version $Id$
-///
-/// This program can be distributed under the terms of the GNU GPLv2.
-/// See the file LICENSE for details.
-///
+//!
+//! @package Spotql
+//!
+//! @file Spotql main entry
+//! @copyright (c) 2021-present Christoph Kappel <christoph@unexist.dev>
+//! @version $Id$
+//!
+//! This program can be distributed under the terms of the GNU GPLv2.
+//! See the file LICENSE for details.
+//!
 
 #[macro_use]
 extern crate nom;

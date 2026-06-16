@@ -1,0 +1,24 @@
+[tasks.test]
+run = "cargo test -- --nocapture"
+
+[tasks.cap]
+run = "cargo test"
+
+[tasks.trace]
+env.RUST_BACKTRACE = 1
+run = "cargo test"
+
+[tasks.build]
+raw_args = true
+run = "cargo build"
+
+[tasks.crun]
+raw_args = true
+alias = "r"
+run = "cargo run"
+
+[tasks.clean]
+run = "cargo clean"
+
+[tasks.clippy]
+run = "bacon clippy"
