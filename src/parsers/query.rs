@@ -9,8 +9,10 @@
 //! See the file LICENSE for details.
 //!
 
-use nom::number::Endianness;
+use nom::combinator::map;
+use nom::{IResult, combinator::opt};
 use nom::character::complete::anychar;
+use nom::Parser;
 
 use crate::parsers::statement::{ Statement, statement_parser };
 
@@ -22,17 +24,17 @@ pub struct Query<'a> {
 }
 
 /* Auth message: char tag | int32 len | payload | \0 */
-named!(pub query_parser<&[u8], Query>,
-    dbg_dmp!(
-        do_parse!(
-            tag: anychar >>
-            len: i32!(Endianness::Big) >>
-            stmt: opt!(statement_parser) >>
-            (Query {
-                tag: tag,
-                len: len,
-                statement: stmt
-            })
-        )
-    )
-);
+pub(crate) fn query_parser(input: &[u8]) -> IResult<&[u8], Query> {
+    map(
+        (
+            anychar,
+            nom::character::complete::i32,
+            opt(statement_parser),
+        ),
+        |(tag, len, statement)| Query {
+            tag,
+            len,
+            statement,
+        }
+    ).parse(input)
+}
