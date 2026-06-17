@@ -9,11 +9,11 @@
 //! See the file LICENSE for details.
 //!
 
-use nom::character::complete::{
-    multispace0,
-};
+use nom::combinator::{map, opt};
+use nom::{IResult, branch::alt, bytes::tag, character::complete::multispace0, combinator::value, sequence::delimited};
+use nom::Parser;
 
-use crate::parsers::column::{ column_name_parser };
+use crate::parsers::column::{column_name_parser};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Operator {
@@ -40,44 +40,46 @@ pub struct Predicate<'a> {
 // Condition parser
 //
 
-named!(op_parser<&[u8], Operator>,
-    delimited!(
+pub(crate) fn op_parser(input: &[u8]) -> IResult<&[u8], Operator> {
+    delimited(
         multispace0,
-        alt!(
-            value!(Operator::GREATER, tag!(">"))
-            | value!(Operator::EQUAL, tag!("="))
-            | value!(Operator::SMALLER, tag!("<"))
+        alt(
+            (
+                value(Operator::GREATER, tag(">")),
+                value(Operator::EQUAL, tag("=")),
+                value(Operator::SMALLER, tag("<")),
+            )
         ),
         multispace0
-    )
-);
+    ).parse(input)
+}
 
-named!(combinator_parser<&[u8], Combinator>,
-    complete!(
-        delimited!(
-            multispace0,
-            alt!(
-                value!(Combinator::AND, tag!("and"))
-                | value!(Combinator::OR, tag!("or"))
-            ),
-            multispace0
-        )
-    )
-);
+pub(crate) fn combinator_parser(input: &[u8]) -> IResult<&[u8], Combinator> {
+    delimited(
+        multispace0,
+        alt(
+            (
+                value(Combinator::AND, tag("and")),
+                value(Combinator::OR, tag("or")),
+            )
+        ),
+        multispace0
+    ).parse(input)
+}
 
-named!(pub predicate_parser<&[u8], Predicate>,
-    dbg_dmp!(
-        do_parse!(
-            left_hand: column_name_parser >>
-            op: op_parser >>
-            right_hand: column_name_parser >>
-            combinator: opt!(combinator_parser) >>
-            (Predicate {
-                left_hand: left_hand,
-                op: op,
-                right_hand: right_hand,
-                combinator: combinator,
-            })
-        )
-    )
-);
+pub(crate) fn predicate_parser(input: &[u8]) -> IResult<&[u8], Predicate> {
+    map(
+        (
+            column_name_parser,
+            op_parser,
+            column_name_parser,
+            opt(combinator_parser),
+        ),
+        |(left_hand, op, right_hand, combinator)| Predicate {
+            left_hand,
+            op,
+            right_hand,
+            combinator,
+        }
+    ).parse(input)
+}
