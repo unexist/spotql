@@ -9,8 +9,10 @@
 //! See the file LICENSE for details.
 //!
 
-use nom::number::Endianness;
+use nom::IResult;
+use nom::combinator::map;
 use nom::character::complete::anychar;
+use nom::Parser;
 
 #[derive(Debug)]
 pub struct Terminate {
@@ -19,15 +21,15 @@ pub struct Terminate {
 }
 
 /* Terminate message: char tag | int32 len | \0 */
-named!(pub terminate_parser<&[u8], Terminate>,
-    dbg_dmp!(
-        do_parse!(
-            tag: anychar >>
-            len: i32!(Endianness::Big) >>
-            (Terminate {
-                tag: tag,
-                len: len,
-            })
-        )
-    )
-);
+pub(crate) fn terminate_parser(input: &[u8]) -> IResult<&[u8], Terminate> {
+    map(
+        (
+            anychar,
+            nom::character::complete::i32,
+        ),
+        |(tag, len)| Terminate {
+            tag,
+            len
+        }
+    ).parse(input)
+}
