@@ -1,14 +1,18 @@
 [package]
 name = "spotql"
 version = "0.1.0"
-authors = ["Christoph Kappel <christophl@unexist.dev>"]
-edition = "2018"
+authors = [
+    "Christoph Kappel <christophl@unexist.dev>"
+]
 license-file = "LICENSE"
 homepage = "https://unexist.dev"
 repository = "https://hg.unexist.dev/spotql"
+edition = "2024"
+include = ["/src", "LICENSE"]
 
 [dependencies]
-nom = "6.0.1"
-tokio = { version = "0.3.6", features = ["full"] }
-reqwest = { version = "0.11.0", features = [ "blocking" ]}
-rspotify = { version = "0.10.0", features = [ "blocking" ]}
+anyhow = "1.0.102"
+nom = "8.0.0"
+tokio = { version = "1.52.3", features = ["full"] }
+reqwest = { version = "0.13.4", features = [ "blocking" ]}
+rspotify = { version = "0.16.1" }
