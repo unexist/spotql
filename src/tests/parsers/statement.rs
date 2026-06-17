@@ -99,7 +99,7 @@ fn test_parse_simple_select_statement_with_single_column_with_as() {
                 None => unreachable!(),
             }
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }
 
@@ -121,7 +121,7 @@ fn test_parse_simple_select_statement_with_multi_column() {
                 None => unreachable!(),
             }
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }
 
@@ -147,7 +147,7 @@ fn test_parse_simple_select_statement_with_single_column_and_table() {
 
             assert_eq!(stmt.table, Some("table"));
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }
 
@@ -197,7 +197,7 @@ fn test_parse_simple_select_statement_with_single_column_and_table_and_simple_pr
                 None => unreachable!(),
             }
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }
 
@@ -230,6 +230,6 @@ fn test_parse_simple_select_statement_with_single_column_and_table_and_combi_pre
                 None => unreachable!(),
             }
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }
