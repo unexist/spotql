@@ -28,7 +28,7 @@ fn parse_query(input: &[u8]) -> Result<Query, ParserError> {
 static MESSAGE: &'static str = "Q\u{0}\u{0}\u{0}\u{19}select * from songs;\u{0}";
 
 #[test]
-fn test_parse_query() {
+fn should_parse_query() {
     match parse_query(MESSAGE.as_bytes()) {
         Ok(query) => {
             assert_eq!(query.tag, 'Q');

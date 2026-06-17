@@ -27,7 +27,7 @@ fn parse_auth(input: &[u8]) -> Result<Auth, ParserError> {
 static MESSAGE: &'static str = "p\u{0}\u{0}\u{0}\u{e}test\u{0}";
 
 #[test]
-fn test_parse_auth() {
+fn should_parse_auth() {
     match parse_auth(MESSAGE.as_bytes()) {
         Ok(auth) => {
             assert_eq!(auth.tag, 'p');

@@ -27,7 +27,7 @@ fn parse_statement(input: &str) -> Result<Statement, ParserError> {
 ///
 
 #[test]
-fn test_parse_simple_select_statement() {
+fn should_parse_simple_select_statement() {
     match parse_statement("select;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);
@@ -37,7 +37,7 @@ fn test_parse_simple_select_statement() {
 }
 
 #[test]
-fn test_parse_simple_update_statement() {
+fn should_parse_simple_update_statement() {
     match parse_statement("update;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::UPDATE);
@@ -63,7 +63,7 @@ macro_rules! test_column {
 }
 
 #[test]
-fn test_parse_simple_select_statement_with_single_column() {
+fn should_parse_simple_select_statement_with_single_column() {
     match parse_statement("select *;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);
@@ -84,7 +84,7 @@ fn test_parse_simple_select_statement_with_single_column() {
 }
 
 #[test]
-fn test_parse_simple_select_statement_with_single_column_with_as() {
+fn should_parse_simple_select_statement_with_single_column_with_as() {
     match parse_statement("select a as all;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);
@@ -105,7 +105,7 @@ fn test_parse_simple_select_statement_with_single_column_with_as() {
 
 
 #[test]
-fn test_parse_simple_select_statement_with_multi_column() {
+fn should_parse_simple_select_statement_with_multi_column() {
     match parse_statement("select a, b;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);
@@ -130,7 +130,7 @@ fn test_parse_simple_select_statement_with_multi_column() {
 ///
 
 #[test]
-fn test_parse_simple_select_statement_with_single_column_and_table() {
+fn should_parse_simple_select_statement_with_single_column_and_table() {
     match parse_statement("select * from table;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);
@@ -170,7 +170,7 @@ macro_rules! test_predicate {
 }
 
 #[test]
-fn test_parse_simple_select_statement_with_single_column_and_table_and_simple_predicate() {
+fn should_parse_simple_select_statement_with_single_column_and_table_and_simple_predicate() {
     match parse_statement("select * from table where a = b;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);
@@ -202,7 +202,7 @@ fn test_parse_simple_select_statement_with_single_column_and_table_and_simple_pr
 }
 
 #[test]
-fn test_parse_simple_select_statement_with_single_column_and_table_and_combi_predicate() {
+fn should_parse_simple_select_statement_with_single_column_and_table_and_combi_predicate() {
     match parse_statement("select * from table where a = b and b = a;") {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);

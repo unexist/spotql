@@ -31,7 +31,7 @@ static MESSAGE: &'static str = "\u{0}\u{0}\u{0}N\u{0}\u{3}\u{0}\u{0}\
 static PROTOCOL_VERSION: i32 = 196608;
 
 #[test]
-fn test_parse_startup() {
+fn should_parse_startup() {
     match parse_startup(MESSAGE.as_bytes()) {
         Ok(startup) => {
             assert_eq!(startup.len, 78);

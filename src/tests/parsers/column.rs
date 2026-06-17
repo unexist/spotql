@@ -26,7 +26,7 @@ fn parse_column(input: &str) -> Result<Column, ParserError> {
 ///
 
 #[test]
-fn test_parse_simple_column() {
+fn should_parse_simple_column() {
     match parse_column("songs") {
         Ok(col) => {
             assert_eq!(col.name, "songs");
@@ -37,7 +37,7 @@ fn test_parse_simple_column() {
 }
 
 #[test]
-fn test_parse_simple_column_with_alias() {
+fn should_parse_simple_column_with_alias() {
     match parse_column("songs as foo") {
         Ok(col) => {
             assert_eq!(col.name, "songs");

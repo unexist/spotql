@@ -22,7 +22,7 @@ fn parse_predicate(input: &str) -> Result<Predicate, ParserError> {
 }
 
 #[test]
-fn test_parse_simple_equal_predicate() {
+fn should_parse_simple_equal_predicate() {
     match parse_predicate("a = b") {
         Ok(pred) => {
             assert_eq!(pred.left_hand, "a");
@@ -35,7 +35,7 @@ fn test_parse_simple_equal_predicate() {
 }
 
 #[test]
-fn test_parse_simple_greater_predicate() {
+fn should_parse_simple_greater_predicate() {
     match parse_predicate("playcount > 25") {
         Ok(pred) => {
             assert_eq!(pred.left_hand, "playcount");
@@ -48,7 +48,7 @@ fn test_parse_simple_greater_predicate() {
 }
 
 #[test]
-fn test_parse_combi_greater_predicate() {
+fn should_parse_combi_greater_predicate() {
     match parse_predicate("playcount > 25 and a = b") {
         Ok(pred) => {
             assert_eq!(pred.left_hand, "playcount");

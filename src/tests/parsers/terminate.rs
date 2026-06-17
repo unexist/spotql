@@ -27,7 +27,7 @@ fn parse_terminate(input: &[u8]) -> Result<Terminate, ParserError> {
 static MESSAGE: &'static str = "X\u{0}\u{0}\u{0}\u{0}";
 
 #[test]
-fn test_parse_terminate() {
+fn should_parse_terminate() {
     match parse_terminate(MESSAGE.as_bytes()) {
         Ok(term) => {
             assert_eq!(term.tag, 'X');
