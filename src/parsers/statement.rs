@@ -10,13 +10,19 @@
 //!
 
 use std::str;
+use nom::branch::alt;
+use nom::bytes::tag;
 use nom::character::complete::{
     multispace0,
     alphanumeric1,
 };
+use nom::combinator::{complete, map, map_res, opt, value};
+use nom::multi::many1;
+use nom::{IResult, Parser};
+use nom::sequence::{delimited, preceded};
 
-use crate::parsers::predicate::{ Predicate, predicate_parser };
-use crate::parsers::column::{ Column, column_list_parser };
+use crate::parsers::predicate::{Predicate, predicate_parser};
+use crate::parsers::column::{Column, column_list_parser};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Verb {
@@ -36,63 +42,67 @@ pub struct Statement<'a> {
 // Statement parser
 //
 
-named!(verb_parser<&[u8], Verb>,
-    delimited!(
+pub(crate) fn verb_parser(input: &[u8]) -> IResult<&[u8], Verb> {
+    delimited(
         multispace0,
-        alt!(
-            value!(Verb::SELECT, tag!("select"))
-            | value!(Verb::UPDATE, tag!("update"))
+        alt(
+            (
+                value(Verb::SELECT, tag("select")),
+                value(Verb::UPDATE, tag("update")),
+            )
         ),
         multispace0
-    )
-);
+    ).parse(input)
+}
 
-named!(table_parser<&[u8], &str>,
-    complete!(
-        map_res!(
-            preceded!(
-                delimited!(
+pub(crate) fn table_parser(input: &[u8]) -> IResult<&[u8], &str> {
+    complete(
+        map_res(
+            preceded(
+                delimited(
                     multispace0,
-                    tag!("from"),
+                    tag("from"),
                     multispace0
                 ),
-                delimited!(
+                delimited(
                     multispace0,
                     alphanumeric1,
                     multispace0
                 )
             ), str::from_utf8
         )
-    )
-);
+    ).parse(input)
+}
 
-named!(predicate_list_parser<&[u8], Vec<Predicate>>,
-    complete!(
-        preceded!(
-            delimited!(
+pub(crate) fn predicate_list_parser(input: &[u8]) -> IResult<&[u8], Vec<Predicate>> {
+    complete(
+        preceded(
+            delimited(
                 multispace0,
-                tag!("where"),
+                tag("where"),
                 multispace0
             ),
-            many1!(
-                complete!(predicate_parser)
+            many1(
+                complete(predicate_parser)
             )
         )
-    )
-);
+    ).parse(input)
+}
 
-named!(pub statement_parser<&[u8], Statement>,
-    do_parse!(
-        verb: verb_parser >>
-        columns: opt!(column_list_parser) >>
-        table: opt!(table_parser) >>
-        predicates: opt!(predicate_list_parser) >>
-        tag!(";") >>
-        (Statement {
-            verb: verb,
-            columns: columns,
-            table: table,
-            predicates: predicates,
-        })
-    )
-);
+pub(crate) fn statement_parser(input: &[u8]) -> IResult<&[u8], Statement> {
+    map(
+        (
+            verb_parser,
+            opt(column_list_parser),
+            opt(table_parser),
+            opt(predicate_list_parser),
+            tag(";")
+        ),
+        |(verb, columns, table, predicates, _)| Statement {
+            verb,
+            columns,
+            table,
+            predicates,
+        }
+    ).parse(input)
+}
