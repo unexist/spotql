@@ -47,6 +47,6 @@ fn test_parse_startup() {
                 None => unreachable!()
             }
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }

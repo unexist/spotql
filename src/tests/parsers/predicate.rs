@@ -30,7 +30,7 @@ fn test_parse_simple_equal_predicate() {
             assert_eq!(pred.right_hand, "b");
             assert!(pred.combinator.is_none());
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }
 
@@ -43,7 +43,7 @@ fn test_parse_simple_greater_predicate() {
             assert_eq!(pred.right_hand, "25");
             assert!(pred.combinator.is_none());
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }
 
@@ -56,6 +56,6 @@ fn test_parse_combi_greater_predicate() {
             assert_eq!(pred.right_hand, "25");
             assert_eq!(pred.combinator, Some(Combinator::AND));
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }

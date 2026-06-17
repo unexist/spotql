@@ -33,6 +33,6 @@ fn test_parse_terminate() {
             assert_eq!(term.tag, 'X');
             assert_eq!(term.len, 0);
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }

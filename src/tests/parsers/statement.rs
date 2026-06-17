@@ -32,7 +32,7 @@ fn test_parse_simple_select_statement() {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::SELECT);
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }
 
@@ -42,7 +42,7 @@ fn test_parse_simple_update_statement() {
         Ok(stmt) => {
             assert_eq!(stmt.verb, Verb::UPDATE);
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }
 
@@ -79,7 +79,7 @@ fn test_parse_simple_select_statement_with_single_column() {
             }
 
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }
 

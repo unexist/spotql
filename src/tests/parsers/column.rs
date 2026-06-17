@@ -32,7 +32,7 @@ fn test_parse_simple_column() {
             assert_eq!(col.name, "songs");
             assert!(col.alias.is_none());
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }
 
@@ -43,6 +43,6 @@ fn test_parse_simple_column_with_alias() {
             assert_eq!(col.name, "songs");
             assert_eq!(col.alias, Some("foo"));
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }

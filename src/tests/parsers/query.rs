@@ -53,6 +53,6 @@ fn test_parse_query() {
 
             assert_eq!(stmt.table, Some("songs"));
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }

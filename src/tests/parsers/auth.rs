@@ -33,6 +33,6 @@ fn test_parse_auth() {
             assert_eq!(auth.tag, 'p');
             assert_eq!(auth.payload, Some("test"));
         },
-        Err(e) => panic!(format!("Error: {}", e)),
+        Err(e) => panic!("Error: {}", e),
     }
 }
