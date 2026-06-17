@@ -9,9 +9,10 @@
 //! See the file LICENSE for details.
 //!
 
-use std::str;
-use nom::number::Endianness;
-use nom::character::complete::{ anychar, alphanumeric1 };
+use nom::IResult;
+use nom::combinator::{map, map_res, opt};
+use nom::character::complete::{anychar, alphanumeric1};
+use nom::Parser;
 
 #[derive(Debug)]
 pub struct Auth<'a> {
@@ -21,19 +22,17 @@ pub struct Auth<'a> {
 }
 
 /* Auth message: char tag | int32 len | payload | \0 */
-named!(pub auth_parser<&[u8], Auth>,
-    dbg_dmp!(
-        do_parse!(
-            tag: anychar >>
-            len: i32!(Endianness::Big) >>
-            payload: opt!(
-                map_res!(alphanumeric1, str::from_utf8)
-            ) >>
-            (Auth {
-                tag: tag,
-                len: len,
-                payload: payload
-            })
-        )
-    )
-);
+pub(crate) fn auth_parser(input: &[u8]) -> IResult<&[u8], Auth> {
+    map(
+        (
+            anychar,
+            nom::character::complete::i32,
+            opt(map_res(alphanumeric1, str::from_utf8)),
+        ),
+        |(tag, len, payload)| Auth {
+            tag,
+            len,
+            payload,
+        }
+    ).parse(input)
+}
