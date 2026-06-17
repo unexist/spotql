@@ -10,10 +10,10 @@
 //!
 
 use std::str;
-use nom::character::complete::{
-    multispace0,
-    alphanumeric1,
-};
+use nom::{IResult, branch::alt, bytes::tag, character::complete::{
+    alphanumeric1, multispace0
+}, combinator::{complete, map, map_res, opt}, multi::separated_list0, sequence::{delimited, preceded}};
+use nom::Parser;
 
 #[derive(Debug)]
 pub struct Column<'a> {
@@ -25,54 +25,54 @@ pub struct Column<'a> {
 // Column parser
 //
 
-named!(pub column_name_parser<&[u8], &str>,
-    map_res!(
-        delimited!(
+pub(crate) fn column_name_parser(input: &[u8]) -> IResult<&[u8], &str> {
+    map_res(
+        delimited(
             multispace0,
-            alt!(
-                tag!("*")
-                | alphanumeric1
+            alt(
+                (
+                    tag("*"),
+                    alphanumeric1
+                )
             ),
             multispace0
         ), str::from_utf8
-    )
-);
+    ).parse(input)
+}
 
-named!(pub column_parser<&[u8], Column>,
-    do_parse!(
-        name: column_name_parser >>
-        alias: opt!(
-            complete!(
-                preceded!(
-                    delimited!(
-                        multispace0,
-                        tag!("as"),
-                        multispace0
+pub(crate) fn column_parser(input: &[u8]) -> IResult<&[u8], Column> {
+    map(
+        (
+            column_name_parser,
+            opt(
+                complete(
+                    preceded(
+                        delimited(
+                            multispace0,
+                            tag("as"),
+                            multispace0,
+                        ),
+                        column_name_parser
                     ),
-                    column_name_parser
                 )
             )
-        ) >>
-        (Column {
-            name: name,
-            alias: alias,
-        })
-    )
-);
+        ),
+        |(name, alias)| Column {
+            name,
+            alias,
+        }
+    ).parse(input)
+}
 
-named!(pub column_list_parser<&[u8], Vec<Column>>,
-    complete!(
-        dbg_dmp!(
-            separated_list0!(
-                complete!(
-                    delimited!(
-                        multispace0,
-                        tag!(","),
-                        multispace0
-                    )
-                ),
-                column_parser
-            )
-        )
-    )
-);
+pub(crate) fn column_list_parser(input: &[u8]) -> IResult<&[u8], Vec<Column>> {
+    complete(
+        separated_list0(
+            complete(
+                delimited(
+                    multispace0,
+                    tag(","),
+                    multispace0,
+                )
+            ), column_parser
+    )).parse(input)
+}
