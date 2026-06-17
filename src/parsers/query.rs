@@ -14,7 +14,7 @@ use nom::{IResult, combinator::opt};
 use nom::character::complete::anychar;
 use nom::Parser;
 
-use crate::parsers::statement::{ Statement, statement_parser };
+use crate::parsers::statement::{Statement, statement_parser};
 
 #[derive(Debug)]
 pub struct Query<'a> {
