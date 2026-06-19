@@ -18,6 +18,7 @@ use nom::bytes::tag;
 use nom::combinator::map;
 use nom::combinator::opt;
 use nom::multi::separated_list0;
+use nom::number::complete::be_i32;
 
 #[derive(Debug)]
 pub struct Startup<'a> {
@@ -30,8 +31,8 @@ pub struct Startup<'a> {
 pub(crate) fn startup_parser(input: &[u8]) -> IResult<&[u8], Startup> {
     map(
         (
-            nom::character::complete::i32,
-            nom::character::complete::i32,
+            be_i32,
+            be_i32,
             opt(
                 separated_list0(
                     tag('\0'),

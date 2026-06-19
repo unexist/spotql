@@ -13,6 +13,7 @@ use nom::IResult;
 use nom::combinator::map;
 use nom::character::complete::anychar;
 use nom::Parser;
+use nom::number::complete::be_i32;
 
 #[derive(Debug)]
 pub struct Terminate {
@@ -25,7 +26,7 @@ pub(crate) fn terminate_parser(input: &[u8]) -> IResult<&[u8], Terminate> {
     map(
         (
             anychar,
-            nom::character::complete::i32,
+            be_i32,
         ),
         |(tag, len)| Terminate {
             tag,
