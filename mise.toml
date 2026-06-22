@@ -20,6 +20,9 @@ run = "cargo run"
 [tasks.clean]
 run = "cargo clean"
 
+[tasks.upgrade]
+run = "cargo upgrade -i"
+
 [tasks.clippy]
 run = "bacon clippy"
 
