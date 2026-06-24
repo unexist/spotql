@@ -9,8 +9,6 @@
 //! See the file LICENSE for details.
 //!
 
-use nom::IResult;
-
 use crate::parsers::parser_error::ParserError;
 use crate::parsers::{
     startup::{Startup, startup_parser},
@@ -25,24 +23,46 @@ pub enum Message<'a> {
     Auth(Auth<'a>),
     Query(Query<'a>),
     Terminate(Terminate),
+    Error(&'static str),
 }
 
-pub(crate) fn message_parser(input: &[u8]) -> IResult<&[u8], Message> {
-    switch(peek(take(1)),
+    /*alt(
         (
-            b"\0" => map(startup_parser, |m: Startup| Message::Startup(m))
-            | b"p" => map(auth_parser, |m: Auth| Message::Auth(m))
-            | b"X" => map(terminate_parser, |m: Terminate| Message::Terminate(m))
-            | _ => map(query_parser, |m: Query| Message::Query(m))
+            recognize(peek(char('\0')), map(startup_parser, |m: Startup| Message::Startup(m))),
+            recognize(peek(char('b')), map(auth_parser, |m: Auth| Message::Auth(m))),
+            recognize(peek(char('x')), map(terminate_parser, |m: Terminate| Message::Terminate(m))),
+            map(query_parser, |m: Query| Message::Query(m)),
         )
-    ).parse(input)
-}
+    ).parse(input)*/
 
-pub fn parse_message(input: &[u8]) -> Result<Message, ParserError> {
-    match message_parser(input) {
-        Ok((_, msg)) => Ok(msg),
-        Err(e) => Err(ParserError {
+pub fn parse_message(input: &[u8]) -> Result<Message<'_>, ParserError> {
+    let result = match input[0] as char {
+        '\0' => if let Ok(msg) = startup_parser(input) {
+            Message::Startup(msg.1)
+        } else {
+            Message::Error("Cannot parse startup")
+        },
+        'b' => if let Ok(msg) = auth_parser(input) {
+            Message::Auth(msg.1)
+        } else {
+            Message::Error("Cannot parse auth")
+        },
+        'x' => if let Ok(msg) = terminate_parser(input) {
+            Message::Terminate(msg.1)
+        } else {
+            Message::Error("Cannot parse auth")
+        },
+        _ =>  if let Ok(msg) = query_parser(input) {
+            Message::Query(msg.1)
+        } else {
+            Message::Error("Cannot parse query")
+        },
+    };
+
+    match result {
+        Message::Error(e) => Err(ParserError {
             message: e.to_string()
-        })
+        }),
+        msg => Ok(msg),
     }
 }
