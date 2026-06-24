@@ -9,12 +9,13 @@
 //! See the file LICENSE for details.
 //!
 
-use std::str::from_utf8;
 use std::collections::HashMap;
+use std::str::from_utf8;
 use nom::IResult;
 use nom::Parser;
-use nom::bytes::is_a;
+use nom::branch::alt;
 use nom::bytes::tag;
+use nom::character::complete::{char, alphanumeric1};
 use nom::combinator::map;
 use nom::combinator::opt;
 use nom::multi::separated_list0;
@@ -22,8 +23,8 @@ use nom::number::complete::be_i32;
 
 #[derive(Debug)]
 pub struct Startup<'a> {
-    pub protocol_version: i32,
     pub len: i32,
+    pub protocol_version: i32,
     pub parameters: Option<HashMap<&'a str, &'a str>>,
 }
 
@@ -35,10 +36,10 @@ pub(crate) fn startup_parser(input: &[u8]) -> IResult<&[u8], Startup> {
             be_i32,
             opt(
                 separated_list0(
-                    tag('\0'),
-                    is_a("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_01234567890"),
+                    char('\0'),
+                    alt((alphanumeric1, tag("-"), tag("_"))),
                 )
-            ),
+            )
         ),
         |(len, protocol_version, payload)| Startup {
             len,
@@ -49,7 +50,9 @@ pub(crate) fn startup_parser(input: &[u8]) -> IResult<&[u8], Startup> {
 
                 while let Some(key) = iter.next() {
                     if let Some(value) = iter.next() {
-                        params.insert(from_utf8(key).unwrap(), from_utf8(value).unwrap());
+                        params.insert(
+                            from_utf8(*key).expect("Conversion from u8 failed"),
+                            from_utf8(*value).expect("Conversion from u8 failed"));
                     }
                 }
 
