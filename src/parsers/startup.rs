@@ -14,6 +14,7 @@ use std::str::from_utf8;
 use nom::IResult;
 use nom::Parser;
 use nom::branch::alt;
+use nom::bytes::complete::is_a;
 use nom::bytes::tag;
 use nom::character::complete::{char, alphanumeric1};
 use nom::combinator::map;
@@ -37,7 +38,7 @@ pub(crate) fn startup_parser(input: &[u8]) -> IResult<&[u8], Startup<'_>> {
             opt(
                 separated_list0(
                     char('\0'),
-                    alt((alphanumeric1, tag("-"), tag("_"))),
+                    is_a("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_01234567890"),
                 )
             )
         ),
