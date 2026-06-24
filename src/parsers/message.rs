@@ -52,11 +52,12 @@ pub fn parse_message(input: &[u8]) -> Result<Message<'_>, ParserError> {
         } else {
             Message::Error("Cannot parse auth")
         },
-        _ =>  if let Ok(msg) = query_parser(input) {
+        'Q' =>  if let Ok(msg) = query_parser(input) {
             Message::Query(msg.1)
         } else {
             Message::Error("Cannot parse query")
         },
+        _ => Message::Error("Message type not implemented yet")
     };
 
     match result {
