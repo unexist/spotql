@@ -13,7 +13,7 @@ use crate::parsers::query::{ Query, query_parser };
 use crate::parsers::statement::Verb;
 use crate::parsers::parser_error::ParserError;
 
-fn parse_query(input: &[u8]) -> Result<Query, ParserError> {
+fn parse_query(input: &[u8]) -> Result<Query<'_>, ParserError> {
     match query_parser(input) {
         Ok((_, query)) => Ok(query),
         Err(e) => Err(ParserError {

@@ -12,7 +12,7 @@
 use crate::parsers::predicate::{ Operator, Predicate, Combinator, predicate_parser };
 use crate::parsers::parser_error::ParserError;
 
-fn parse_predicate(input: &str) -> Result<Predicate, ParserError> {
+fn parse_predicate(input: &str) -> Result<Predicate<'_>, ParserError> {
     match predicate_parser(input.as_bytes()) {
         Ok((_, predicate)) => Ok(predicate),
         Err(e) => Err(ParserError {

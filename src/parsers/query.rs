@@ -24,7 +24,7 @@ pub struct Query<'a> {
 }
 
 /* Auth message: char tag | int32 len | payload | \0 */
-pub(crate) fn query_parser(input: &[u8]) -> IResult<&[u8], Query> {
+pub(crate) fn query_parser(input: &[u8]) -> IResult<&[u8], Query<'_>> {
     map(
         (
             anychar,

@@ -74,7 +74,7 @@ pub(crate) fn table_parser(input: &[u8]) -> IResult<&[u8], &str> {
     ).parse(input)
 }
 
-pub(crate) fn predicate_list_parser(input: &[u8]) -> IResult<&[u8], Vec<Predicate>> {
+pub(crate) fn predicate_list_parser(input: &[u8]) -> IResult<&[u8], Vec<Predicate<'_>>> {
     complete(
         preceded(
             delimited(
@@ -89,7 +89,7 @@ pub(crate) fn predicate_list_parser(input: &[u8]) -> IResult<&[u8], Vec<Predicat
     ).parse(input)
 }
 
-pub(crate) fn statement_parser(input: &[u8]) -> IResult<&[u8], Statement> {
+pub(crate) fn statement_parser(input: &[u8]) -> IResult<&[u8], Statement<'_>> {
     map(
         (
             verb_parser,

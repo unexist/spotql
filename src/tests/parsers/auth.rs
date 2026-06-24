@@ -12,7 +12,7 @@
 use crate::parsers::auth::{ Auth, auth_parser };
 use crate::parsers::parser_error::ParserError;
 
-fn parse_auth(input: &[u8]) -> Result<Auth, ParserError> {
+fn parse_auth(input: &[u8]) -> Result<Auth<'_>, ParserError> {
     match auth_parser(input) {
         Ok((_, query)) => Ok(query),
         Err(e) => Err(ParserError {

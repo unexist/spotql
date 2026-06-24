@@ -12,7 +12,7 @@
 use crate::parsers::column::{ Column, column_parser };
 use crate::parsers::parser_error::ParserError;
 
-fn parse_column(input: &str) -> Result<Column, ParserError> {
+fn parse_column(input: &str) -> Result<Column<'_>, ParserError> {
     match column_parser(input.as_bytes()) {
         Ok((_, col)) => Ok(col),
         Err(e) => Err(ParserError {

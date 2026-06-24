@@ -23,7 +23,7 @@ pub struct Auth<'a> {
 }
 
 /* Auth message: char tag | int32 len | payload | \0 */
-pub(crate) fn auth_parser(input: &[u8]) -> IResult<&[u8], Auth> {
+pub(crate) fn auth_parser(input: &[u8]) -> IResult<&[u8], Auth<'_>> {
     map(
         (
             anychar,

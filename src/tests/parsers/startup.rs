@@ -12,7 +12,7 @@
 use crate::parsers::startup::{ Startup, startup_parser };
 use crate::parsers::parser_error::ParserError;
 
-fn parse_startup(input: &[u8]) -> Result<Startup, ParserError> {
+fn parse_startup(input: &[u8]) -> Result<Startup<'_>, ParserError> {
     match startup_parser(input) {
         Ok((_, startup)) => Ok(startup),
         Err(e) => Err(ParserError {

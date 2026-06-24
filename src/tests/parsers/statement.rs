@@ -13,7 +13,7 @@ use crate::parsers::statement::{ statement_parser, Statement, Verb };
 use crate::parsers::predicate::{ Operator, Combinator };
 use crate::parsers::parser_error::ParserError;
 
-fn parse_statement(input: &str) -> Result<Statement, ParserError> {
+fn parse_statement(input: &str) -> Result<Statement<'_>, ParserError> {
     match statement_parser(input.as_bytes()) {
         Ok((_, stmt)) => Ok(stmt),
         Err(e) => Err(ParserError {

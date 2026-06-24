@@ -29,7 +29,7 @@ pub struct Startup<'a> {
 }
 
 /* Startup message: int32 len | int32 protocol version | key \0 | value \0 | \0 */
-pub(crate) fn startup_parser(input: &[u8]) -> IResult<&[u8], Startup> {
+pub(crate) fn startup_parser(input: &[u8]) -> IResult<&[u8], Startup<'_>> {
     map(
         (
             be_i32,

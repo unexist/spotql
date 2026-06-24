@@ -67,7 +67,7 @@ pub(crate) fn combinator_parser(input: &[u8]) -> IResult<&[u8], Combinator> {
     ).parse(input)
 }
 
-pub(crate) fn predicate_parser(input: &[u8]) -> IResult<&[u8], Predicate> {
+pub(crate) fn predicate_parser(input: &[u8]) -> IResult<&[u8], Predicate<'_>> {
     map(
         (
             column_name_parser,

@@ -40,7 +40,7 @@ pub(crate) fn column_name_parser(input: &[u8]) -> IResult<&[u8], &str> {
     ).parse(input)
 }
 
-pub(crate) fn column_parser(input: &[u8]) -> IResult<&[u8], Column> {
+pub(crate) fn column_parser(input: &[u8]) -> IResult<&[u8], Column<'_>> {
     map(
         (
             column_name_parser,
@@ -64,7 +64,7 @@ pub(crate) fn column_parser(input: &[u8]) -> IResult<&[u8], Column> {
     ).parse(input)
 }
 
-pub(crate) fn column_list_parser(input: &[u8]) -> IResult<&[u8], Vec<Column>> {
+pub(crate) fn column_list_parser(input: &[u8]) -> IResult<&[u8], Vec<Column<'_>>> {
     complete(
         separated_list0(
             complete(
