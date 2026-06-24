@@ -10,6 +10,7 @@
 //!
 
 use nom::combinator::map;
+use nom::number::complete::be_i32;
 use nom::{IResult, combinator::opt};
 use nom::character::complete::anychar;
 use nom::Parser;
@@ -28,7 +29,7 @@ pub(crate) fn query_parser(input: &[u8]) -> IResult<&[u8], Query<'_>> {
     map(
         (
             anychar,
-            nom::character::complete::i32,
+            be_i32,
             opt(statement_parser),
         ),
         |(tag, len, statement)| Query {
