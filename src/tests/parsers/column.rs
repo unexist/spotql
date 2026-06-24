@@ -30,7 +30,6 @@ fn parse_columns(input: &str) -> Result<Vec<Column<'_>>, ParserError> {
     }
 }
 
-
 ///
 /// Simple columns
 ///
@@ -56,6 +55,10 @@ fn should_parse_simple_column_with_alias() {
         Err(e) => panic!("Error: {}", e),
     }
 }
+
+///
+/// Multiple columns
+///
 
 #[test]
 fn should_parse_multi_columns() {
