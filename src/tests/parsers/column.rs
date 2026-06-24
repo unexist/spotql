@@ -9,7 +9,7 @@
 //! See the file LICENSE for details.
 //!
 
-use crate::parsers::column::{ Column, column_parser };
+use crate::parsers::column::{ Column, column_list_parser, column_parser };
 use crate::parsers::parser_error::ParserError;
 
 fn parse_column(input: &str) -> Result<Column<'_>, ParserError> {
@@ -20,6 +20,16 @@ fn parse_column(input: &str) -> Result<Column<'_>, ParserError> {
         })
     }
 }
+
+fn parse_columns(input: &str) -> Result<Vec<Column<'_>>, ParserError> {
+    match column_list_parser(input.as_bytes()) {
+        Ok((_, cols)) => Ok(cols),
+        Err(e) => Err(ParserError {
+            message: e.to_string()
+        })
+    }
+}
+
 
 ///
 /// Simple columns
@@ -42,6 +52,34 @@ fn should_parse_simple_column_with_alias() {
         Ok(col) => {
             assert_eq!(col.name, "songs");
             assert_eq!(col.alias, Some("foo"));
+        },
+        Err(e) => panic!("Error: {}", e),
+    }
+}
+
+#[test]
+fn should_parse_multi_columns() {
+    match parse_columns("songs, tracks") {
+        Ok(cols) => {
+            assert_eq!(cols[0].name, "songs");
+            assert!(cols[0].alias.is_none());
+
+            assert_eq!(cols[1].name, "tracks");
+            assert!(cols[1].alias.is_none());
+        },
+        Err(e) => panic!("Error: {}", e),
+    }
+}
+
+#[test]
+fn should_parse_multi_columns_with_aliases() {
+    match parse_columns("songs as foo, tracks as bar") {
+        Ok(cols) => {
+            assert_eq!(cols[0].name, "songs");
+            assert_eq!(cols[0].alias, Some("foo"));
+
+            assert_eq!(cols[1].name, "tracks");
+            assert_eq!(cols[1].alias, Some("bar"));
         },
         Err(e) => panic!("Error: {}", e),
     }
