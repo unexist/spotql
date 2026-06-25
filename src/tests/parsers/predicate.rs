@@ -14,12 +14,25 @@ use crate::parsers::parser_error::ParserError;
 
 fn parse_predicate(input: &str) -> Result<Predicate<'_>, ParserError> {
     match predicate_parser(input.as_bytes()) {
-        Ok((_, predicate)) => Ok(predicate),
+        Ok((_, pred)) => Ok(pred),
         Err(e) => Err(ParserError {
             message: e.to_string()
         })
     }
 }
+
+fn parse_predicates(input: &str) -> Result<Predicate<'_>, ParserError> {
+    match predicate_list_parser(input.as_bytes()) {
+        Ok((_, preds)) => Ok(preds),
+        Err(e) => Err(ParserError {
+            message: e.to_string()
+        })
+    }
+}
+
+///
+/// Simple predicates
+///
 
 #[test]
 fn should_parse_simple_equal_predicate() {
@@ -47,14 +60,23 @@ fn should_parse_simple_greater_predicate() {
     }
 }
 
+///
+/// Multiple predicates
+///
+
 #[test]
 fn should_parse_combi_greater_predicate() {
-    match parse_predicate("playcount > 25 and a = b") {
-        Ok(pred) => {
-            assert_eq!(pred.left_hand, "playcount");
-            assert_eq!(pred.op, Operator::GREATER);
-            assert_eq!(pred.right_hand, "25");
-            assert_eq!(pred.combinator, Some(Combinator::AND));
+    match parse_predicates("playcount > 25 and a = b") {
+        Ok(preds) => {
+            assert_eq!(preds[0].left_hand, "playcount");
+            assert_eq!(preds[0].op, Operator::GREATER);
+            assert_eq!(preds[0].right_hand, "25");
+            assert_eq!(preds[0].combinator, Some(Combinator::AND));
+
+            assert_eq!(preds[1].left_hand, "a");
+            assert_eq!(preds[1].op, Operator::EQUAL);
+            assert_eq!(preds[1].right_hand, "b");
+            assert_eq!(preds[1].combinator, None);
         },
         Err(e) => panic!("Error: {}", e),
     }
