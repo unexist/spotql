@@ -10,7 +10,7 @@
 //!
 
 use nom::combinator::{map, opt};
-use nom::{IResult, branch::alt, bytes::tag, character::complete::multispace0, combinator::value, sequence::delimited};
+use nom::{IResult, branch::alt, bytes::tag, character::complete::multispace0, combinator::value, combinator::complete, sequence::delimited};
 use nom::Parser;
 
 use crate::parsers::column::{column_name_parser};
@@ -55,15 +55,17 @@ pub(crate) fn op_parser(input: &[u8]) -> IResult<&[u8], Operator> {
 }
 
 pub(crate) fn combinator_parser(input: &[u8]) -> IResult<&[u8], Combinator> {
-    delimited(
-        multispace0,
-        alt(
-            (
-                value(Combinator::AND, tag("and")),
-                value(Combinator::OR, tag("or")),
-            )
-        ),
-        multispace0
+    complete(
+        delimited(
+            multispace0,
+            alt(
+                (
+                    value(Combinator::AND, tag("and")),
+                    value(Combinator::OR, tag("or")),
+                )
+            ),
+            multispace0
+        )
     ).parse(input)
 }
 
