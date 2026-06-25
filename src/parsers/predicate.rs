@@ -10,6 +10,7 @@
 //!
 
 use nom::combinator::{map, opt};
+use nom::multi::many0;
 use nom::{IResult, branch::alt, bytes::tag, character::complete::multispace0, combinator::value, combinator::complete, sequence::delimited};
 use nom::Parser;
 
@@ -83,5 +84,19 @@ pub(crate) fn predicate_parser(input: &[u8]) -> IResult<&[u8], Predicate<'_>> {
             right_hand,
             combinator,
         }
+    ).parse(input)
+}
+
+pub(crate) fn predicate_list_parser(input: &[u8]) -> IResult<&[u8], Vec<Predicate<'_>>> {
+    complete(
+        many0(
+            complete(
+                delimited(
+                    multispace0,
+                    predicate_parser,
+                    multispace0
+                )
+            )
+        )
     ).parse(input)
 }
