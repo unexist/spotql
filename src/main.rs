@@ -1,3 +1,5 @@
+#![cfg_attr(debug_assertions, allow(dead_code, unused_variables, unused_assignments))]
+
 //!
 //! @package Spotql
 //!
@@ -12,16 +14,30 @@
 #[cfg(test)]
 mod tests;
 mod parsers;
+mod logger;
+mod config;
 
+use anyhow::Result;
+use log::{debug, info};
 use tokio::net::{TcpListener, TcpStream };
 #[allow(unused_imports)]
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
 
 use parsers::message::{ Message, parse_message };
 
 use std::mem;
 use std::str::from_utf8;
 use std::borrow::BorrowMut;
+
+use crate::config::Config;
+
+/// Print version info
+fn print_version() {
+    info!("{} {} - Copyright (c) 2025-present {}",
+        env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"), env!("CARGO_PKG_AUTHORS"));
+    info!("Released under the GNU GPLv3");
+}
 
 async fn send_password_ok<T: BorrowMut<TcpStream>>(mut socket: T) {
     let stream = socket.borrow_mut();
@@ -33,7 +49,15 @@ async fn send_password_ok<T: BorrowMut<TcpStream>>(mut socket: T) {
 }
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> Result<()> {
+    // Load config
+    let (config, path, _format) = Config::parse_info();
+
+    logger::init(&config)?;
+
+    info!("Reading file `{:?}'", path.unwrap_or_default());
+    debug!("Config: {:?}", config);
+
     let listener = TcpListener::bind("127.0.0.1:5432").await?;
 
     loop {
