@@ -1,0 +1,25 @@
+//!
+//! @package Spotql
+//!
+//! @file Config functions
+//! @copyright (c) 2025-present Christoph Kappel <christoph@unexist.dev>
+//! @version $Id$
+//!
+//! This program can be distributed under the terms of the GNU GPLv3.
+//! See the file LICENSE for details.
+
+
+use clap_config_file::ClapConfigFile;
+
+#[derive(ClapConfigFile)]
+#[config_file_name = "spotql"]
+#[config_file_formats = "yaml,toml,json"]
+pub(crate) struct Config {
+    /// Set logging level LEVEL
+    #[config_arg(short = 'l', name = "level", default_value = "", accept_from = "cli_only")]
+    pub(crate) loglevel: String,
+
+    /// Print debugging messages
+    #[config_arg(short = 'D', default_value = false, accept_from = "cli_only")]
+    pub(crate) debug: bool,
+}
