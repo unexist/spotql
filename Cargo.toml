@@ -2,7 +2,7 @@
 name = "spotql"
 version = "0.1.0"
 authors = [
-    "Christoph Kappel <christophl@unexist.dev>"
+    "Christoph Kappel <christoph@unexist.dev>"
 ]
 license-file = "LICENSE"
 homepage = "https://unexist.dev"
