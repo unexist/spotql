@@ -34,7 +34,6 @@ fn print_version() {
     info!("Released under the GNU GPLv3");
 }
 
-
 /// Main function
 ///
 /// # Returns
@@ -72,6 +71,17 @@ async fn main() -> Result<()> {
     }
 }
 
+async fn send_param(socket: &mut TcpStream, param_name: &str, param_val: &str) -> Result<()> {
+    let formatted = format!("{}\0{}\0", param_name, param_val);
+    let message = formatted.as_bytes();
+
+    socket.write_u8('S' as u8).await?;
+    socket.write_i32(4 + mem::size_of_val(message) as i32).await?; // Message len
+    socket.write(message).await?;
+
+    Ok(())
+}
+
 /// Handle tcp communication
 ///
 /// # Arguments
@@ -88,7 +98,7 @@ async fn process(mut socket: TcpStream) -> Result<()> {
         let n = socket.read(&mut buf).await?;
 
         if 0 == n {
-            bail!("No data available");
+            continue;
         }
 
         info!("Read data: n={:?}, data={:?}", n, from_utf8(&buf[0..n])?);
@@ -99,17 +109,30 @@ async fn process(mut socket: TcpStream) -> Result<()> {
                     Message::Startup(startup) => {
                         info!("Parsed startup message: {:?}", startup);
 
+                        /* Send NegotiateProtocolVersion - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-NEGOTIATEPROTOCOLVERSION> */
+                        socket.write_all(&['v' as u8, 0, 0, 0, 12, 0, 3, 0, 0, 0, 0, 0, 0]).await?;
+
+                        let mut v = Vec::new();
+                        v.write_u8('v' as u8).await?;
+                        v.write_i32(8).await?;
+                        v.write_i32(196608).await?;
+                        println!("{:?}", v);
+
                         /* Ask for password */
                         socket.write_all(&['R' as u8, 0, 0, 0, 8, 0, 0, 0, 3]).await?;
                     },
                     Message::Auth(auth) => {
                         info!("Parsed auth message: {:?}", auth);
 
-                        /* Tell password is ok */
+                        /* Send AuthenticationOk - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-AUTHENTICATIONOK> */
                         socket.write_all(&['R' as u8, 0, 0, 0, 8, 0, 0, 0, 0]).await?;
 
-                        /* Tell ready for query */
-                        socket.write_all(&['Z' as u8, 0, 0, 0, 5, 0, 0, 0, 'I' as u8]).await?;
+                        /* Send ParameterStatus - <https://www.postgresql.org/docs/13/protocol-flow.html#PROTOCOL-ASYNC> */
+                        send_param(&mut socket, "application_name", env!("CARGO_PKG_NAME")).await?;
+                        send_param(&mut socket, "server_version", env!("CARGO_PKG_VERSION")).await?;
+
+                        /* Send ReadyForQuery  - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-READYFORQUERY> */
+                        socket.write_all(&['Z' as u8, 0, 0, 0, 5, 'I' as u8]).await?;
                     },
                     Message::Query(query) => {
                         info!("Parsed query message: {:?}", query);
@@ -158,7 +181,7 @@ async fn process(mut socket: TcpStream) -> Result<()> {
                     _ => unreachable!()
                 };
             },
-            Err(e) => error!("Error {:?}", e)
+            Err(e) => bail!(e)
         }
     }
 
