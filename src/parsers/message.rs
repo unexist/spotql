@@ -26,15 +26,6 @@ pub enum Message<'a> {
     Error(&'static str),
 }
 
-    /*alt(
-        (
-            recognize(peek(char('\0')), map(startup_parser, |m: Startup| Message::Startup(m))),
-            recognize(peek(char('b')), map(auth_parser, |m: Auth| Message::Auth(m))),
-            recognize(peek(char('x')), map(terminate_parser, |m: Terminate| Message::Terminate(m))),
-            map(query_parser, |m: Query| Message::Query(m)),
-        )
-    ).parse(input)*/
-
 pub fn parse_message(input: &[u8]) -> Result<Message<'_>, ParserError> {
     let result = match input[0] as char {
         '\0' => if let Ok(msg) = startup_parser(input) {
