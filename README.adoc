@@ -1,3 +1,9 @@
 = spotql
 
-SQL for spotify API [MIRROR]
+This project contains a simpple implementation of the Postgres wire protocol
+to fetch data from the spotify API.
+
+== Links
+
+- https://www.postgresql.org/docs/current/protocol-message-formats.html
+- https://www.cognica.io/en/docs/cognica-internals/28
