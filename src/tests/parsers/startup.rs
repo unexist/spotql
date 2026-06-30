@@ -9,7 +9,7 @@
 //! See the file LICENSE for details.
 //!
 
-use crate::parsers::startup::{ Startup, startup_parser };
+use crate::parsers::incoming::startup::{ Startup, startup_parser };
 use crate::parsers::parser_error::ParserError;
 
 fn parse_startup(input: &[u8]) -> Result<Startup<'_>, ParserError> {

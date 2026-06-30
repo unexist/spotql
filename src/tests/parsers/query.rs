@@ -9,8 +9,8 @@
 //! See the file LICENSE for details.
 //!
 
-use crate::parsers::query::{ Query, query_parser };
-use crate::parsers::statement::Verb;
+use crate::parsers::incoming::query::{ Query, query_parser };
+use crate::parsers::incoming::statement::Verb;
 use crate::parsers::parser_error::ParserError;
 
 fn parse_query(input: &[u8]) -> Result<Query<'_>, ParserError> {

@@ -1,7 +1,7 @@
 //!
 //! @package Spotql
 //!
-//! @file Spotql parsers mod
+//! @file Spotql parsers incoming mod
 //! @copyright (c) 2021-present Christoph Kappel <christoph@unexist.dev>
 //! @version $Id$
 //!
@@ -9,6 +9,10 @@
 //! See the file LICENSE for details.
 //!
 
-pub mod incoming;
-pub mod parser_error;
-pub mod message;
+pub mod startup;
+pub mod query;
+pub mod statement;
+pub mod column;
+pub mod predicate;
+pub mod auth;
+pub mod terminate;

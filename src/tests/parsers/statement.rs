@@ -9,8 +9,8 @@
 //! See the file LICENSE for details.
 //!
 
-use crate::parsers::statement::{ statement_parser, Statement, Verb };
-use crate::parsers::predicate::{ Operator, Combinator };
+use crate::parsers::incoming::statement::{statement_parser, Statement, Verb};
+use crate::parsers::incoming::predicate::{Operator, Combinator};
 use crate::parsers::parser_error::ParserError;
 
 fn parse_statement(input: &str) -> Result<Statement<'_>, ParserError> {

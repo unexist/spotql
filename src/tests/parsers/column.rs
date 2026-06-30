@@ -9,7 +9,7 @@
 //! See the file LICENSE for details.
 //!
 
-use crate::parsers::column::{ Column, column_list_parser, column_parser };
+use crate::parsers::incoming::column::{Column, column_list_parser, column_parser};
 use crate::parsers::parser_error::ParserError;
 
 fn parse_column(input: &str) -> Result<Column<'_>, ParserError> {

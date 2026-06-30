@@ -10,7 +10,7 @@
 //!
 
 use crate::parsers::parser_error::ParserError;
-use crate::parsers::{
+use crate::parsers::incoming::{
     startup::{Startup, startup_parser},
     auth::{Auth, auth_parser},
     query::{Query, query_parser},
@@ -42,7 +42,7 @@ pub fn parse_message(input: &[u8]) -> Result<Message<'_>, ParserError> {
         } else {
             Message::Error("Cannot parse startup")
         },
-        'b' => if let Ok(msg) = auth_parser(input) {
+        'p' => if let Ok(msg) = auth_parser(input) {
             Message::Auth(msg.1)
         } else {
             Message::Error("Cannot parse auth")

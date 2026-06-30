@@ -17,19 +17,14 @@ mod parsers;
 mod logger;
 mod config;
 
-use anyhow::Result;
-use log::{debug, info};
+use anyhow::{Result, bail};
+use log::{debug, error, info};
 use tokio::net::{TcpListener, TcpStream };
 #[allow(unused_imports)]
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-
-
 use parsers::message::{ Message, parse_message };
-
 use std::mem;
 use std::str::from_utf8;
-use std::borrow::BorrowMut;
-
 use crate::config::Config;
 
 /// Print version info
@@ -39,74 +34,85 @@ fn print_version() {
     info!("Released under the GNU GPLv3");
 }
 
-async fn send_password_ok<T: BorrowMut<TcpStream>>(mut socket: T) {
-    let stream = socket.borrow_mut();
 
-    /* Tell password is ok */
-    stream.write_u8('R' as u8).await.ok();
-    stream.write_i32(8).await.ok();
-    stream.write_i32(0).await.ok();
-}
-
+/// Main function
+///
+/// # Returns
+///
+/// A [`Result`] with either [`unit`] on success or otherwise [`anyhow::Error`]
 #[tokio::main]
 async fn main() -> Result<()> {
     // Load config
-    let (config, path, _format) = Config::parse_info();
+    let (config, maybe_path, _format) = Config::parse_info();
 
     logger::init(&config)?;
 
-    info!("Reading file `{:?}'", path.unwrap_or_default());
+    print_version();
+
+    if let Some(path) = maybe_path {
+        info!("Reading file `{:?}'", path);
+    }
     debug!("Config: {:?}", config);
 
-    let listener = TcpListener::bind("127.0.0.1:5432").await?;
+    let listen_addr = format!("{}:{}", config.hostname, config.port);
+
+    info!("Listening on `{}'", listen_addr);
+
+    // Finally start listener loop
+    let listener = TcpListener::bind(listen_addr).await?;
 
     loop {
         let (socket, _) = listener.accept().await?;
 
         tokio::spawn(async move {
-            process(socket).await;
+            if let Err(err) = process(socket).await {
+                error!("Error reading data: `{:?}`", err);
+            }
         });
     }
 }
 
-async fn process(mut socket: TcpStream) {
+/// Handle tcp communication
+///
+/// # Arguments
+///
+/// * `socket` - Tcp stream of the connected client
+///
+/// # Returns
+///
+/// A [`Result`] with either [`unit`] on success or otherwise [`anyhow::Error`]
+async fn process(mut socket: TcpStream) -> Result<()> {
     let mut buf = vec![0; 1024];
 
     loop {
-        let n = socket.read(&mut buf).await.expect("Failed to read data from socket");
+        let n = socket.read(&mut buf).await?;
 
         if 0 == n {
-            return;
+            bail!("No data available");
         }
 
-        println!("Read: n={:?}, data={:?}", n, from_utf8(&buf[0..n]).unwrap());
+        info!("Read data: n={:?}, data={:?}", n, from_utf8(&buf[0..n])?);
 
         match parse_message(&buf[0..n]) {
             Ok(result) => {
                 match result {
                     Message::Startup(startup) => {
-                        println!("Parsed startup message: {:?}", startup);
+                        info!("Parsed startup message: {:?}", startup);
 
                         /* Ask for password */
-                        socket.write_u8('R' as u8).await.ok();
-                        socket.write_i32(8).await.ok();
-                        socket.write_i32(3).await.ok();
+                        socket.write_all(&['R' as u8, 0, 0, 0, 8, 0, 0, 0, 3]).await?;
                     },
                     Message::Auth(auth) => {
-                        println!("Parsed auth message: {:?}", auth);
+                        info!("Parsed auth message: {:?}", auth);
 
                         /* Tell password is ok */
-                        socket.write_u8('R' as u8).await.ok();
-                        socket.write_i32(8).await.ok();
-                        socket.write_i32(0).await.ok();
+                        socket.write_all(&['R' as u8, 0, 0, 0, 8, 0, 0, 0, 0]).await?;
 
                         /* Tell ready for query */
-                        socket.write_u8('Z' as u8).await.ok();
-                        socket.write_i32(5).await.ok();
-                        socket.write_u8('I' as u8).await.ok();
+                        socket.write_all(&['Z' as u8, 0, 0, 0, 5, 0, 0, 0, 'I' as u8]).await?;
                     },
                     Message::Query(query) => {
-                        println!("Parsed query message: {:?}", query);
+                        info!("Parsed query message: {:?}", query);
 
                         /* Tell row description */
                         let message = b"name\0";
@@ -144,7 +150,7 @@ async fn process(mut socket: TcpStream) {
                         socket.write_u8('I' as u8).await.ok();
                     },
                     Message::Terminate(terminate) => {
-                        println!("Parsed terminate message: {:?}", terminate);
+                        info!("Parsed terminate message: {:?}", terminate);
 
                         break;
                     },
@@ -152,7 +158,9 @@ async fn process(mut socket: TcpStream) {
                     _ => unreachable!()
                 };
             },
-            Err(e) => eprintln!("Error {:?}", e)
+            Err(e) => error!("Error {:?}", e)
         }
     }
+
+    Ok(())
 }

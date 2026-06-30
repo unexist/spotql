@@ -9,7 +9,7 @@
 //! See the file LICENSE for details.
 //!
 
-use crate::parsers::terminate::{ Terminate, terminate_parser };
+use crate::parsers::incoming::terminate::{Terminate, terminate_parser};
 use crate::parsers::parser_error::ParserError;
 
 fn parse_terminate(input: &[u8]) -> Result<Terminate, ParserError> {

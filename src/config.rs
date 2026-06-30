@@ -16,10 +16,18 @@ use clap_config_file::ClapConfigFile;
 #[config_file_formats = "yaml,toml,json"]
 pub(crate) struct Config {
     /// Set logging level LEVEL
-    #[config_arg(short = 'l', name = "level", default_value = "", accept_from = "cli_only")]
+    #[config_arg(short = 'l', name = "level", default_value = "")]
     pub(crate) loglevel: String,
 
     /// Print debugging messages
-    #[config_arg(short = 'D', default_value = false, accept_from = "cli_only")]
+    #[config_arg(short = 'D', default_value = false)]
     pub(crate) debug: bool,
+
+    /// Hostname to listen on
+    #[config_arg(short = 'H', default_value = "localhost")]
+    pub(crate) hostname: String,
+
+    /// Port to listen on
+    #[config_arg(short = 'p', default_value = "5432")]
+    pub(crate) port: u16,
 }

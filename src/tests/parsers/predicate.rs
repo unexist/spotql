@@ -9,7 +9,7 @@
 //! See the file LICENSE for details.
 //!
 
-use crate::parsers::predicate::{ Operator, Predicate, Combinator, predicate_parser, predicate_list_parser };
+use crate::parsers::incoming::predicate::{Operator, Predicate, Combinator, predicate_parser, predicate_list_parser};
 use crate::parsers::parser_error::ParserError;
 
 fn parse_predicate(input: &str) -> Result<Predicate<'_>, ParserError> {

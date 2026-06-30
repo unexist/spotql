@@ -9,7 +9,7 @@
 //! See the file LICENSE for details.
 //!
 
-use crate::parsers::auth::{ Auth, auth_parser };
+use crate::parsers::incoming::auth::{Auth, auth_parser};
 use crate::parsers::parser_error::ParserError;
 
 fn parse_auth(input: &[u8]) -> Result<Auth<'_>, ParserError> {
