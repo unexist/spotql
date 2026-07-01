@@ -112,12 +112,6 @@ async fn process(mut socket: TcpStream) -> Result<()> {
                         /* Send NegotiateProtocolVersion - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-NEGOTIATEPROTOCOLVERSION> */
                         socket.write_all(&['v' as u8, 0, 0, 0, 12, 0, 3, 0, 0, 0, 0, 0, 0]).await?;
 
-                        let mut v = Vec::new();
-                        v.write_u8('v' as u8).await?;
-                        v.write_i32(8).await?;
-                        v.write_i32(196608).await?;
-                        println!("{:?}", v);
-
                         /* Ask for password */
                         socket.write_all(&['R' as u8, 0, 0, 0, 8, 0, 0, 0, 3]).await?;
                     },
