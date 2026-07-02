@@ -19,10 +19,10 @@ mod config;
 
 use anyhow::{Result, bail};
 use log::{debug, error, info};
-use tokio::net::{TcpListener, TcpStream };
+use tokio::net::{TcpListener, TcpStream};
 #[allow(unused_imports)]
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use parsers::message::{ Message, parse_message };
+use parsers::message::{Message, parse_message};
 use std::mem;
 use std::str::from_utf8;
 use crate::config::Config;
@@ -110,7 +110,7 @@ async fn process(mut socket: TcpStream) -> Result<()> {
                         info!("Parsed startup message: {:?}", startup);
 
                         /* Send NegotiateProtocolVersion - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-NEGOTIATEPROTOCOLVERSION> */
-                        socket.write_all(&['v' as u8, 0, 0, 0, 12, 0, 3, 0, 0, 0, 0, 0, 0]).await?;
+                        socket.write_all(&['v' as u8, 0, 0, 0, 13, 0, 3, 0, 0, 0, 0, 0, 0, 0]).await?;
 
                         /* Ask for password */
                         socket.write_all(&['R' as u8, 0, 0, 0, 8, 0, 0, 0, 3]).await?;
