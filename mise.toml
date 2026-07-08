@@ -20,7 +20,7 @@ run = "cargo run"
 [tasks.clean]
 run = "cargo clean"
 
-[tasks.upgrade]
+[tasks.cupgrade]
 run = "cargo upgrade -i"
 
 [tasks.clippy]
