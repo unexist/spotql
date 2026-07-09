@@ -21,7 +21,10 @@ pub(crate) async fn send_auth_request(socket: &mut TcpStream) -> Result<()> {
     debug!("{}", function_name!());
 
     /* Ask for password */
-    socket.write_all(&['R' as u8, 0, 0, 0, 8, 0, 0, 0, 3]).await?;
+    socket.write_all(&['R' as u8, // Tag name
+        0, 0, 0, 8, // Message len
+        0, 0, 0, 3
+    ]).await?;
 
     Ok(())
 }
@@ -30,7 +33,10 @@ pub(crate) async fn send_auth_ok(socket: &mut TcpStream) -> Result<()> {
     debug!("{}", function_name!());
 
     /* Send AuthenticationOk - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-AUTHENTICATIONOK> */
-    socket.write_all(&['R' as u8, 0, 0, 0, 8, 0, 0, 0, 0]).await?;
+    socket.write_all(&['R' as u8, // Tag name
+        0, 0, 0, 8, // Message len
+        0, 0, 0, 0
+    ]).await?;
 
     Ok(())
 }
@@ -53,7 +59,11 @@ pub(crate) async fn send_proto_negotiation(socket: &mut TcpStream) -> Result<()>
     debug!("{}", function_name!());
 
     /* Send NegotiateProtocolVersion - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-NEGOTIATEPROTOCOLVERSION> */
-    socket.write_all(&['v' as u8, 0, 0, 0, 12, 0, 3, 0, 0, 0, 0, 0, 0, 0]).await?;
+    socket.write_all(&['v' as u8, // Tag name
+        0, 0, 0, 12, // Message len
+        0, 3, 0, 0,
+        0, 0, 0, 0
+    ]).await?;
 
     Ok(())
 }
@@ -62,7 +72,10 @@ pub(crate) async fn send_ready_for_query(socket: &mut TcpStream) -> Result<()> {
     debug!("{}", function_name!());
 
     /* Send ReadyForQuery  - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-READYFORQUERY> */
-    socket.write_all(&['Z' as u8, 0, 0, 0, 5, 'I' as u8]).await?;
+    socket.write_all(&['Z' as u8, // Tag name
+        0, 0, 0, 5, // Message len
+        'I' as u8 // Transaction status (I = idle, T = transaction, E = transaction error)
+    ]).await?;
 
     Ok(())
 }
@@ -70,13 +83,13 @@ pub(crate) async fn send_ready_for_query(socket: &mut TcpStream) -> Result<()> {
 pub(crate) async fn send_command_complete(socket: &mut TcpStream, command_tag: &str) -> Result<()> {
     debug!("{}: command_tag={}", function_name!(), command_tag);
 
-    /* Send CommandComplete - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-COMMANDCOMPLETE> */
     let formatted = format!("{}\0", command_tag);
     let message = formatted.as_bytes();
 
-    socket.write_u8('C' as u8).await.ok();
-    socket.write_i32(4 + mem::size_of_val(message) as i32).await.ok(); // Message len
-    socket.write(message).await.ok();
+    /* Send CommandComplete - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-COMMANDCOMPLETE> */
+    socket.write_u8('C' as u8).await?; // Tag name
+    socket.write_i32(4 + mem::size_of_val(message) as i32).await?; // Message len
+    socket.write(message).await?;
 
     Ok(())
 }
