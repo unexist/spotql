@@ -66,3 +66,17 @@ pub(crate) async fn send_ready_for_query(socket: &mut TcpStream) -> Result<()> {
 
     Ok(())
 }
+
+pub(crate) async fn send_command_complete(socket: &mut TcpStream, command_tag: &str) -> Result<()> {
+    debug!("{}: command_tag={}", function_name!(), command_tag);
+
+    /* Send CommandComplete - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-COMMANDCOMPLETE> */
+    let formatted = format!("{}\0", command_tag);
+    let message = formatted.as_bytes();
+
+    socket.write_u8('C' as u8).await.ok();
+    socket.write_i32(4 + mem::size_of_val(message) as i32).await.ok(); // Message len
+    socket.write(message).await.ok();
+
+    Ok(())
+}

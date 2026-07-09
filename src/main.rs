@@ -27,7 +27,7 @@ use parsers::message::{Message, parse_message};
 use std::mem;
 use std::str::from_utf8;
 use crate::config::Config;
-use crate::wire::{send_auth_ok, send_auth_request, send_param, send_proto_negotiation, send_ready_for_query};
+use crate::wire::{send_auth_ok, send_auth_request, send_command_complete, send_param, send_proto_negotiation, send_ready_for_query};
 
 /// Print version info
 fn print_version() {
@@ -100,7 +100,7 @@ async fn process(mut socket: TcpStream) -> Result<()> {
                     Message::Startup(startup) => {
                         info!("Received startup message: {:?}", startup);
 
-                        send_proto_negotiation(&mut socket).await?;
+                        //send_proto_negotiation(&mut socket).await?;
                         send_auth_request(&mut socket).await?;
                     },
                     Message::Auth(auth) => {
@@ -137,13 +137,7 @@ async fn process(mut socket: TcpStream) -> Result<()> {
                         socket.write_i32(mem::size_of_val(message) as i32).await.ok(); // Length of column value without self
                         socket.write(message).await.ok();
 
-                        /* Tell command complete */
-                        let message = b"SELECT 0\0";
-
-                        socket.write_u8('C' as u8).await.ok();
-                        socket.write_i32(4 + mem::size_of_val(message) as i32).await.ok();
-                        socket.write(message).await.ok();
-
+                        send_command_complete(&mut socket, &format!("SELECT {}", 1)).await?;
                         send_ready_for_query(&mut socket).await?;
                     },
                     Message::Terminate(terminate) => {
