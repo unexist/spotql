@@ -17,6 +17,24 @@ use tokio::net::TcpStream;
 use tokio::io::AsyncWriteExt;
 use std::mem;
 
+pub(crate) async fn send_auth_request(socket: &mut TcpStream) -> Result<()> {
+    debug!("{}", function_name!());
+
+    /* Ask for password */
+    socket.write_all(&['R' as u8, 0, 0, 0, 8, 0, 0, 0, 3]).await?;
+
+    Ok(())
+}
+
+pub(crate) async fn send_auth_ok(socket: &mut TcpStream) -> Result<()> {
+    debug!("{}", function_name!());
+
+    /* Send AuthenticationOk - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-AUTHENTICATIONOK> */
+    socket.write_all(&['R' as u8, 0, 0, 0, 8, 0, 0, 0, 0]).await?;
+
+    Ok(())
+}
+
 pub(crate) async fn send_param(socket: &mut TcpStream, param_name: &str, param_val: &str) -> Result<()> {
     let formatted = format!("{}\0{}\0", param_name, param_val);
     let message = formatted.as_bytes();
@@ -27,6 +45,15 @@ pub(crate) async fn send_param(socket: &mut TcpStream, param_name: &str, param_v
     socket.write_u8('S' as u8).await?;
     socket.write_i32(4 + mem::size_of_val(message) as i32).await?; // Message len
     socket.write(message).await?;
+
+    Ok(())
+}
+
+pub(crate) async fn send_proto_negotiation(socket: &mut TcpStream) -> Result<()> {
+    debug!("{}", function_name!());
+
+    /* Send NegotiateProtocolVersion - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-NEGOTIATEPROTOCOLVERSION> */
+    socket.write_all(&['v' as u8, 0, 0, 0, 12, 0, 3, 0, 0, 0, 0, 0, 0, 0]).await?;
 
     Ok(())
 }

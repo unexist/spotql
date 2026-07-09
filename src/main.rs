@@ -27,7 +27,7 @@ use parsers::message::{Message, parse_message};
 use std::mem;
 use std::str::from_utf8;
 use crate::config::Config;
-use crate::wire::{send_param, send_ready_for_query};
+use crate::wire::{send_auth_ok, send_auth_request, send_param, send_proto_negotiation, send_ready_for_query};
 
 /// Print version info
 fn print_version() {
@@ -73,8 +73,6 @@ async fn main() -> Result<()> {
     }
 }
 
-
-
 /// Handle tcp communication
 ///
 /// # Arguments
@@ -94,33 +92,27 @@ async fn process(mut socket: TcpStream) -> Result<()> {
             continue;
         }
 
-        info!("Read data: n={:?}, data={:?}", n, from_utf8(&buf[0..n])?);
+        debug!("Read data: n={:?}, data={:?}", n, from_utf8(&buf[0..n])?);
 
         match parse_message(&buf[0..n]) {
             Ok(result) => {
                 match result {
                     Message::Startup(startup) => {
-                        info!("Parsed startup message: {:?}", startup);
+                        info!("Received startup message: {:?}", startup);
 
-                        /* Send NegotiateProtocolVersion - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-NEGOTIATEPROTOCOLVERSION> */
-                        socket.write_all(&['v' as u8, 0, 0, 0, 12, 0, 3, 0, 0, 0, 0, 0, 0, 0]).await?;
-
-                        /* Ask for password */
-                        socket.write_all(&['R' as u8, 0, 0, 0, 8, 0, 0, 0, 3]).await?;
+                        send_proto_negotiation(&mut socket).await?;
+                        send_auth_request(&mut socket).await?;
                     },
                     Message::Auth(auth) => {
-                        info!("Parsed auth message: {:?}", auth);
+                        info!("Received auth message: {:?}", auth);
 
-                        /* Send AuthenticationOk - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-AUTHENTICATIONOK> */
-                        socket.write_all(&['R' as u8, 0, 0, 0, 8, 0, 0, 0, 0]).await?;
-
+                        send_auth_ok(&mut socket).await?;
                         send_param(&mut socket, "application_name", env!("CARGO_PKG_NAME")).await?;
                         send_param(&mut socket, "server_version", env!("CARGO_PKG_VERSION")).await?;
-
                         send_ready_for_query(&mut socket).await?;
                     },
                     Message::Query(query) => {
-                        info!("Parsed query message: {:?}", query);
+                        info!("Received query message: {:?}", query);
 
                         /* Tell row description */
                         let message = b"name\0";
@@ -152,10 +144,10 @@ async fn process(mut socket: TcpStream) -> Result<()> {
                         socket.write_i32(4 + mem::size_of_val(message) as i32).await.ok();
                         socket.write(message).await.ok();
 
-                        socket.write_u8('I' as u8).await.ok();
+                        send_ready_for_query(&mut socket).await?;
                     },
                     Message::Terminate(terminate) => {
-                        info!("Parsed terminate message: {:?}", terminate);
+                        info!("Received terminate message: {:?}", terminate);
 
                         break;
                     },
