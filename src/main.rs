@@ -20,13 +20,15 @@ mod wire;
 
 use anyhow::{Result, bail};
 use log::{debug, error, info};
-use tokio::net::{TcpListener, TcpStream};
+use tokio::{net::{TcpListener, TcpStream}, signal};
 #[allow(unused_imports)]
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use parsers::message::{Message, parse_message};
+use tokio_util::sync::CancellationToken;
 use std::mem;
 use std::str::from_utf8;
 use crate::config::Config;
+#[allow(unused_imports)]
 use crate::wire::{send_auth_ok, send_auth_request, send_command_complete, send_param, send_proto_negotiation, send_ready_for_query};
 
 /// Print version info
@@ -36,6 +38,34 @@ fn print_version() {
     info!("Released under the GNU GPLv3");
 }
 
+async fn run(listen_addr: &str, token: CancellationToken) -> Result<()> {
+    info!("Listening on `{}'", listen_addr);
+
+    let listener = TcpListener::bind(listen_addr).await?;
+
+    loop {
+        tokio::select! {
+            result = listener.accept() => {
+                let (socket, _) = result.unwrap();
+                let cloned_token = token.clone();
+
+                tokio::spawn(async move {
+                    if let Err(err) = handle_connection(socket, cloned_token).await {
+                        error!("Error reading data: `{:?}`", err);
+                    }
+                });
+            },
+            _ = token.cancelled() => {
+                info!("Exit");
+
+                break;
+            }
+        }
+    }
+
+    Ok(())
+}
+
 /// Main function
 ///
 /// # Returns
@@ -43,6 +73,8 @@ fn print_version() {
 /// A [`Result`] with either [`unit`] on success or otherwise [`anyhow::Error`]
 #[tokio::main]
 async fn main() -> Result<()> {
+    let token = CancellationToken::new();
+
     // Load config
     let (config, maybe_path, _format) = Config::parse_info();
 
@@ -55,22 +87,22 @@ async fn main() -> Result<()> {
     }
     debug!("Config: {:?}", config);
 
+    // Listen on address
     let listen_addr = format!("{}:{}", config.hostname, config.port);
+    let cloned_token = token.clone();
 
-    info!("Listening on `{}'", listen_addr);
+    let handle = tokio::spawn(async move {
+        run(&listen_addr, cloned_token).await
+    });
 
-    // Finally start listener loop
-    let listener = TcpListener::bind(listen_addr).await?;
+    signal::ctrl_c().await.expect("Failed to listen for ctrl+c");
+    info!("Shutting down...");
 
-    loop {
-        let (socket, _) = listener.accept().await?;
+    token.cancel();
 
-        tokio::spawn(async move {
-            if let Err(err) = process(socket).await {
-                error!("Error reading data: `{:?}`", err);
-            }
-        });
-    }
+    info!("Exit");
+
+    Ok(())
 }
 
 /// Handle tcp communication
@@ -82,75 +114,83 @@ async fn main() -> Result<()> {
 /// # Returns
 ///
 /// A [`Result`] with either [`unit`] on success or otherwise [`anyhow::Error`]
-async fn process(mut socket: TcpStream) -> Result<()> {
+async fn handle_connection(mut socket: TcpStream, token: CancellationToken) -> Result<()> {
     let mut buf = vec![0; 1024];
 
     loop {
-        let n = socket.read(&mut buf).await?;
+        tokio::select! {
+            result = socket.read(&mut buf) => {
+                let n = result.unwrap();
 
-        if 0 == n {
-            continue;
-        }
+                if 0 == n {
+                    continue;
+                }
 
-        debug!("Read data: n={:?}, data={:?}", n, from_utf8(&buf[0..n])?);
+                debug!("Read data: n={:?}, data={:?}", n, from_utf8(&buf[0..n])?);
 
-        match parse_message(&buf[0..n]) {
-            Ok(result) => {
-                match result {
-                    Message::Startup(startup) => {
-                        info!("Received startup message: {:?}", startup);
+                match parse_message(&buf[0..n]) {
+                    Ok(result) => {
+                        match result {
+                            Message::Startup(startup) => {
+                                info!("Received startup message: {:?}", startup);
 
-                        //send_proto_negotiation(&mut socket).await?;
-                        send_auth_request(&mut socket).await?;
+                                //send_proto_negotiation(&mut socket).await?;
+                                send_auth_request(&mut socket).await?;
+                            },
+                            Message::Auth(auth) => {
+                                info!("Received auth message: {:?}", auth);
+
+                                send_auth_ok(&mut socket).await?;
+                                send_param(&mut socket, "application_name", env!("CARGO_PKG_NAME")).await?;
+                                send_param(&mut socket, "server_version", env!("CARGO_PKG_VERSION")).await?;
+                                send_ready_for_query(&mut socket).await?;
+                            },
+                            Message::Query(query) => {
+                                info!("Received query message: {:?}", query);
+
+                                /* Tell row description */
+                                let message = b"name\0";
+
+                                socket.write_u8('T' as u8).await.ok();
+                                socket.write_i32(29).await.ok(); // Message len
+                                socket.write_i16(1).await.ok(); // Number of columns
+                                socket.write(message).await.ok();
+                                socket.write_i32(0).await.ok(); // Table OID
+                                socket.write_i16(0).await.ok(); // Attribute number of column
+                                socket.write_i32(25).await.ok(); // Object OID of type: text = 25
+                                socket.write_i16(-1).await.ok(); // Data type len
+                                socket.write_i32(0).await.ok(); // Data type modifier
+                                socket.write_i16(0).await.ok(); // Format code: text = 0, binary = 1
+
+                                /* Tell data rows */
+                                let message = b"test\0";
+
+                                socket.write_u8('D' as u8).await.ok();
+                                socket.write_i32(4 + 2 + 4 + mem::size_of_val(message) as i32).await.ok(); // Message len
+                                socket.write_i16(1).await.ok(); // Number of columns
+                                socket.write_i32(mem::size_of_val(message) as i32).await.ok(); // Length of column value without self
+                                socket.write(message).await.ok();
+
+                                send_command_complete(&mut socket, &format!("SELECT {}", 1)).await?;
+                                send_ready_for_query(&mut socket).await?;
+                            },
+                            Message::Terminate(terminate) => {
+                                info!("Received terminate message: {:?}", terminate);
+
+                                break;
+                            },
+                            #[allow(unreachable_patterns)]
+                            _ => unreachable!()
+                        };
                     },
-                    Message::Auth(auth) => {
-                        info!("Received auth message: {:?}", auth);
-
-                        send_auth_ok(&mut socket).await?;
-                        send_param(&mut socket, "application_name", env!("CARGO_PKG_NAME")).await?;
-                        send_param(&mut socket, "server_version", env!("CARGO_PKG_VERSION")).await?;
-                        send_ready_for_query(&mut socket).await?;
-                    },
-                    Message::Query(query) => {
-                        info!("Received query message: {:?}", query);
-
-                        /* Tell row description */
-                        let message = b"name\0";
-
-                        socket.write_u8('T' as u8).await.ok();
-                        socket.write_i32(29).await.ok(); // Message len
-                        socket.write_i16(1).await.ok(); // Number of columns
-                        socket.write(message).await.ok();
-                        socket.write_i32(0).await.ok(); // Table OID
-                        socket.write_i16(0).await.ok(); // Attribute number of column
-                        socket.write_i32(25).await.ok(); // Object OID of type: text = 25
-                        socket.write_i16(-1).await.ok(); // Data type len
-                        socket.write_i32(0).await.ok(); // Data type modifier
-                        socket.write_i16(0).await.ok(); // Format code: text = 0, binary = 1
-
-                        /* Tell data rows */
-                        let message = b"test\0";
-
-                        socket.write_u8('D' as u8).await.ok();
-                        socket.write_i32(4 + 2 + 4 + mem::size_of_val(message) as i32).await.ok(); // Message len
-                        socket.write_i16(1).await.ok(); // Number of columns
-                        socket.write_i32(mem::size_of_val(message) as i32).await.ok(); // Length of column value without self
-                        socket.write(message).await.ok();
-
-                        send_command_complete(&mut socket, &format!("SELECT {}", 1)).await?;
-                        send_ready_for_query(&mut socket).await?;
-                    },
-                    Message::Terminate(terminate) => {
-                        info!("Received terminate message: {:?}", terminate);
-
-                        break;
-                    },
-                    #[allow(unreachable_patterns)]
-                    _ => unreachable!()
-                };
+                    Err(e) => bail!(e)
+                }
             },
-            Err(e) => bail!(e)
-        }
+            _ = token.cancelled() => {
+                info!("Exit");
+                break;
+            }
+        };
     }
 
     Ok(())
