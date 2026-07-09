@@ -2305,6 +2305,7 @@ dependencies = [
  "serde",
  "stdext",
  "tokio",
+ "tokio-util",
 ]
 
 [[package]]
