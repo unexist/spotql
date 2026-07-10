@@ -20,7 +20,7 @@ pub(crate) struct Config {
     pub(crate) loglevel: String,
 
     /// Print debugging messages
-    #[config_arg(short = 'D', default_value = false)]
+    #[config_arg(short = 'd', default_value = false)]
     pub(crate) debug: bool,
 
     /// Hostname to listen on
