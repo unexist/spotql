@@ -16,3 +16,4 @@ mod predicate;
 mod auth;
 mod column;
 mod terminate;
+mod case;
