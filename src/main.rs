@@ -29,7 +29,7 @@ use std::mem;
 use std::str::from_utf8;
 use crate::config::Config;
 #[allow(unused_imports)]
-use crate::wire::{send_auth_ok, send_auth_request, send_command_complete, send_param, send_proto_negotiation, send_ready_for_query};
+use crate::wire::{send_auth_ok, send_auth_request, send_command_complete, send_param, send_proto_negotiation, send_ready_for_query, send_row_descriptions};
 
 /// Print version info
 fn print_version() {
@@ -120,7 +120,7 @@ async fn handle_connection(mut socket: TcpStream, token: CancellationToken) -> R
     loop {
         tokio::select! {
             result = socket.read(&mut buf) => {
-                let n = result.unwrap();
+                let n = result.unwrap_or(0);
 
                 if 0 == n {
                     continue;
@@ -148,19 +148,7 @@ async fn handle_connection(mut socket: TcpStream, token: CancellationToken) -> R
                             Message::Query(query) => {
                                 info!("Received query message: {:?}", query);
 
-                                /* Tell row description */
-                                let message = b"name\0";
-
-                                socket.write_u8('T' as u8).await.ok();
-                                socket.write_i32(29).await.ok(); // Message len
-                                socket.write_i16(1).await.ok(); // Number of columns
-                                socket.write(message).await.ok();
-                                socket.write_i32(0).await.ok(); // Table OID
-                                socket.write_i16(0).await.ok(); // Attribute number of column
-                                socket.write_i32(25).await.ok(); // Object OID of type: text = 25
-                                socket.write_i16(-1).await.ok(); // Data type len
-                                socket.write_i32(0).await.ok(); // Data type modifier
-                                socket.write_i16(0).await.ok(); // Format code: text = 0, binary = 1
+                                send_row_descriptions(&mut socket, &vec!["name", "watt"]).await?;
 
                                 /* Tell data rows */
                                 let message = b"test\0";

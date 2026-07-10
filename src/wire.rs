@@ -93,3 +93,31 @@ pub(crate) async fn send_command_complete(socket: &mut TcpStream, command_tag: &
 
     Ok(())
 }
+
+pub(crate) async fn send_row_descriptions(socket: &mut TcpStream, rows: &Vec<&str>) -> Result<()> {
+    debug!("{}: rows={:?}", function_name!(), rows);
+
+    let mut rows_in_bytes: i32 = rows.iter().map(|&r| mem::size_of_val(r) as i32).sum();
+    rows_in_bytes += rows.len() as i32;
+
+    /* Send RowDescription - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-ROWDESCRIPTION> */
+    socket.write_u8('T' as u8).await?;
+    socket.write_i32(6 + 18 * rows.len() as i32 + rows_in_bytes).await.ok(); // Message len
+    socket.write_i16(rows.len() as i16).await?; // Number of columns
+
+    /* Repeat for each row */
+    for (oid, row) in rows.iter().enumerate() {
+        let formatted = format!("{}\0", row);
+        let message = formatted.as_bytes();
+
+        socket.write(message).await?;
+        socket.write_i32(oid as i32).await?; // Table OID
+        socket.write_i16(oid as i16).await?; // Attribute number of column
+        socket.write_i32(25).await?; // Object OID of type: text = 25
+        socket.write_i16(-1).await?; // Data type len
+        socket.write_i32(0).await?; // Data type modifier
+        socket.write_i16(0).await?; // Format code: text = 0, binary = 1
+    }
+
+    Ok(())
+}
