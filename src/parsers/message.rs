@@ -9,6 +9,9 @@
 //! See the file LICENSE for details.
 //!
 
+use log::debug;
+use stdext::function_name;
+
 use crate::parsers::parser_error::ParserError;
 use crate::parsers::incoming::{
     startup::{Startup, startup_parser},
@@ -27,6 +30,8 @@ pub enum Message<'a> {
 }
 
 pub fn parse_message(input: &[u8]) -> Result<Message<'_>, ParserError> {
+    debug!("{}: input={:?}", function_name!(), input);
+
     let result = match input[0] as char {
         '\0' => if let Ok(msg) = startup_parser(input) {
             Message::Startup(msg.1)

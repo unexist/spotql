@@ -25,7 +25,6 @@ use tokio::{net::{TcpListener, TcpStream}, signal};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_util::sync::CancellationToken;
 use parsers::message::{Message, parse_message};
-use std::str::from_utf8;
 use crate::{config::Config, wire::send_row_data};
 #[allow(unused_imports)]
 use crate::wire::{send_auth_ok, send_auth_request, send_command_complete, send_param, send_proto_negotiation, send_ready_for_query, send_row_descriptions};
@@ -97,8 +96,6 @@ async fn handle_connection(mut socket: TcpStream, token: CancellationToken) -> R
                 if 0 == n {
                     continue;
                 }
-
-                debug!("Read data: n={:?}, data={:?}", n, from_utf8(&buf[0..n])?);
 
                 match parse_message(&buf[0..n]) {
                     Ok(result) => {
