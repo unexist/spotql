@@ -38,6 +38,16 @@ fn print_version() {
     info!("Released under the GNU GPLv3");
 }
 
+/// Run server thread
+///
+/// # Arguments
+///
+/// * `listen_addr` - Adress and port to listen on
+/// * `token` -  Cancellation token to allow graceful shutdown
+///
+/// # Returns
+///
+/// A [`Result`] with either [`unit`] on success or otherwise [`anyhow::Error`]
 async fn run(listen_addr: &str, token: CancellationToken) -> Result<()> {
     info!("Listening on `{}'", listen_addr);
 
@@ -46,17 +56,18 @@ async fn run(listen_addr: &str, token: CancellationToken) -> Result<()> {
     loop {
         tokio::select! {
             result = listener.accept() => {
-                let (socket, _) = result.unwrap();
-                let cloned_token = token.clone();
+                if let Ok((socket, _)) = result {
+                    let cloned_token = token.clone();
 
-                tokio::spawn(async move {
-                    if let Err(err) = handle_connection(socket, cloned_token).await {
-                        error!("Error reading data: `{:?}`", err);
-                    }
-                });
+                    tokio::spawn(async move {
+                        if let Err(err) = handle_connection(socket, cloned_token).await {
+                            error!("Error reading data: `{:?}`", err);
+                        }
+                    });
+                }
             },
             _ = token.cancelled() => {
-                info!("Exit");
+                info!("Exit listener");
 
                 break;
             }
@@ -66,50 +77,12 @@ async fn run(listen_addr: &str, token: CancellationToken) -> Result<()> {
     Ok(())
 }
 
-/// Main function
-///
-/// # Returns
-///
-/// A [`Result`] with either [`unit`] on success or otherwise [`anyhow::Error`]
-#[tokio::main]
-async fn main() -> Result<()> {
-    let token = CancellationToken::new();
-
-    // Load config
-    let (config, maybe_path, _format) = Config::parse_info();
-
-    logger::init(&config)?;
-
-    print_version();
-
-    if let Some(path) = maybe_path {
-        info!("Reading file `{:?}'", path);
-    }
-    debug!("Config: {:?}", config);
-
-    // Listen on address
-    let listen_addr = format!("{}:{}", config.hostname, config.port);
-    let cloned_token = token.clone();
-
-    let handle = tokio::spawn(async move {
-        run(&listen_addr, cloned_token).await
-    });
-
-    signal::ctrl_c().await.expect("Failed to listen for ctrl+c");
-    info!("Shutting down...");
-
-    token.cancel();
-
-    info!("Exit");
-
-    Ok(())
-}
-
 /// Handle tcp communication
 ///
 /// # Arguments
 ///
 /// * `socket` - Tcp stream of the connected client
+/// * `token` -  Cancellation token to allow graceful shutdown
 ///
 /// # Returns
 ///
@@ -175,11 +148,50 @@ async fn handle_connection(mut socket: TcpStream, token: CancellationToken) -> R
                 }
             },
             _ = token.cancelled() => {
-                info!("Exit");
+                info!("Exit connection handler");
                 break;
             }
         };
     }
+
+    Ok(())
+}
+
+/// Main function
+///
+/// # Returns
+///
+/// A [`Result`] with either [`unit`] on success or otherwise [`anyhow::Error`]
+#[tokio::main]
+async fn main() -> Result<()> {
+    let token = CancellationToken::new();
+
+    // Load config
+    let (config, maybe_path, _format) = Config::parse_info();
+
+    logger::init(&config)?;
+
+    print_version();
+
+    if let Some(path) = maybe_path {
+        info!("Reading file `{:?}'", path);
+    }
+    debug!("Config: {:?}", config);
+
+    // Listen on address
+    let listen_addr = format!("{}:{}", config.hostname, config.port);
+    let cloned_token = token.clone();
+
+    let handle = tokio::spawn(async move {
+        run(&listen_addr, cloned_token).await
+    });
+
+    signal::ctrl_c().await.expect("Failed to listen for ctrl+c");
+    info!("Shutting down...");
+
+    token.cancel();
+
+    info!("Exit");
 
     Ok(())
 }
