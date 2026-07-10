@@ -101,7 +101,7 @@ pub(crate) async fn send_row_descriptions(socket: &mut TcpStream, row_names: &Ve
 
     /* Send RowDescription - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-ROWDESCRIPTION> */
     socket.write_u8('T' as u8).await?;
-    socket.write_i32(6 + 18 * row_names.len() as i32 + len_in_bytes).await.ok(); // Message len
+    socket.write_i32(6 + 18 * row_names.len() as i32 + len_in_bytes).await?; // Message len
     socket.write_i16(row_names.len() as i16).await?; // Number of columns
 
     /* Repeat for each row */
@@ -127,16 +127,16 @@ pub(crate) async fn send_row_data(socket: &mut TcpStream, row_data: &Vec<&str>) 
     let len_in_bytes: i32 = row_data.len() as i32 + row_data.iter().map(|&s| mem::size_of_val(s) as i32).sum::<i32>();
 
     /* Send DataRow - <https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-DATAROW> */
-    socket.write_u8('D' as u8).await.ok();
-    socket.write_i32(6 + len_in_bytes + row_data.len() as i32 * 4).await.ok(); // Message len
-    socket.write_i16(row_data.len() as i16).await.ok(); // Number of columns
+    socket.write_u8('D' as u8).await?;
+    socket.write_i32(6 + len_in_bytes + row_data.len() as i32 * 4).await?; // Message len
+    socket.write_i16(row_data.len() as i16).await?; // Number of columns
 
     for data in row_data.iter() {
         let formatted = format!("{}\0", data);
         let message = formatted.as_bytes();
 
-        socket.write_i32(mem::size_of_val(message) as i32).await.ok(); // Length of column value without self
-        socket.write(message).await.ok();
+        socket.write_i32(mem::size_of_val(message) as i32).await?; // Length of column value without self
+        socket.write(message).await?;
     }
 
     Ok(())
