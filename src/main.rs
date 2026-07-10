@@ -23,11 +23,10 @@ use log::{debug, error, info};
 use tokio::{net::{TcpListener, TcpStream}, signal};
 #[allow(unused_imports)]
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use parsers::message::{Message, parse_message};
 use tokio_util::sync::CancellationToken;
-use std::mem;
+use parsers::message::{Message, parse_message};
 use std::str::from_utf8;
-use crate::config::Config;
+use crate::{config::Config, wire::send_row_data};
 #[allow(unused_imports)]
 use crate::wire::{send_auth_ok, send_auth_request, send_command_complete, send_param, send_proto_negotiation, send_ready_for_query, send_row_descriptions};
 
@@ -122,16 +121,7 @@ async fn handle_connection(mut socket: TcpStream, token: CancellationToken) -> R
                                 info!("Received query message: {:?}", query);
 
                                 send_row_descriptions(&mut socket, &vec!["name", "watt"]).await?;
-
-                                /* Tell data rows */
-                                let message = b"test\0";
-
-                                socket.write_u8('D' as u8).await.ok();
-                                socket.write_i32(4 + 2 + 4 + mem::size_of_val(message) as i32).await.ok(); // Message len
-                                socket.write_i16(1).await.ok(); // Number of columns
-                                socket.write_i32(mem::size_of_val(message) as i32).await.ok(); // Length of column value without self
-                                socket.write(message).await.ok();
-
+                                send_row_data(&mut socket, &vec!["foo", "bar"]).await?;
                                 send_command_complete(&mut socket, &format!("SELECT {}", 1)).await?;
                                 send_ready_for_query(&mut socket).await?;
                             },
@@ -149,6 +139,7 @@ async fn handle_connection(mut socket: TcpStream, token: CancellationToken) -> R
             },
             _ = token.cancelled() => {
                 info!("Exit connection handler");
+
                 break;
             }
         };
