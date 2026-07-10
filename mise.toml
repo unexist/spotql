@@ -15,13 +15,27 @@ run = "cargo build"
 [tasks.crun]
 raw_args = true
 alias = "r"
-run = "cargo run"
+usage = '''
+flag "-d --debug" {
+    help "Enable debugging messages"
+}
+'''
+run = "cargo run --"
 
 [tasks.clean]
 run = "cargo clean"
 
 [tasks.cupgrade]
-run = "cargo upgrade -i"
+usage = '''
+flag "-d --dry-run" {
+    help "Enable dry-running"
+}
+'''
+run = '''
+DRY_RUN="${usage_dry_run}"
+
+cargo upgrade -i $DRY_RUN
+'''
 
 [tasks.clippy]
 run = "bacon clippy"
