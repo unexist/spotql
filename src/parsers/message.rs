@@ -9,7 +9,7 @@
 //! See the file LICENSE for details.
 //!
 
-use log::debug;
+use log::{Level, debug, log_enabled};
 use stdext::function_name;
 
 use crate::parsers::parser_error::ParserError;
@@ -30,7 +30,11 @@ pub enum Message<'a> {
 }
 
 pub fn parse_message(input: &[u8]) -> Result<Message<'_>, ParserError> {
-    debug!("{}: input={:?}", function_name!(), input);
+    if log_enabled!(Level::Debug) {
+        let utf8_string = String::from_utf8_lossy(input);
+
+        debug!("{}: input={:?}", function_name!(), utf8_string);
+    }
 
     let result = match input[0] as char {
         '\0' => if let Ok(msg) = startup_parser(input) {
@@ -48,7 +52,7 @@ pub fn parse_message(input: &[u8]) -> Result<Message<'_>, ParserError> {
         } else {
             Message::Error("Cannot parse auth")
         },
-        'Q' =>  if let Ok(msg) = query_parser(input) {
+        'Q' => if let Ok(msg) = query_parser(input) {
             Message::Query(msg.1)
         } else {
             Message::Error("Cannot parse query")
