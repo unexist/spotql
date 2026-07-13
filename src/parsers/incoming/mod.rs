@@ -16,4 +16,4 @@ pub mod column;
 pub mod predicate;
 pub mod auth;
 pub mod terminate;
-pub mod case;
+pub mod unsupported;
