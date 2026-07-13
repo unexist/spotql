@@ -65,7 +65,7 @@ fn should_parse_simple_greater_predicate() {
 ///
 
 #[test]
-fn should_parse_combi_greater_predicate() {
+fn should_parse_combi_greater_equal_predicate() {
     match parse_predicates("playcount > 25 and a = b") {
         Ok(preds) => {
             assert_eq!(preds[0].left_hand, "playcount");
@@ -75,6 +75,24 @@ fn should_parse_combi_greater_predicate() {
 
             assert_eq!(preds[1].left_hand, "a");
             assert_eq!(preds[1].op, Operator::EQUAL);
+            assert_eq!(preds[1].right_hand, "b");
+            assert_eq!(preds[1].combinator, None);
+        },
+        Err(e) => panic!("Error: {}", e),
+    }
+}
+
+#[test]
+fn should_parse_combi_unequal_unlike_predicate() {
+    match parse_predicates("playcount <> 25 and a !~ b") {
+        Ok(preds) => {
+            assert_eq!(preds[0].left_hand, "playcount");
+            assert_eq!(preds[0].op, Operator::UNEQUAL);
+            assert_eq!(preds[0].right_hand, "25");
+            assert_eq!(preds[0].combinator, Some(Combinator::AND));
+
+            assert_eq!(preds[1].left_hand, "a");
+            assert_eq!(preds[1].op, Operator::UNLIKE);
             assert_eq!(preds[1].right_hand, "b");
             assert_eq!(preds[1].combinator, None);
         },

@@ -21,6 +21,8 @@ pub enum Operator {
     GREATER,
     EQUAL,
     SMALLER,
+    UNEQUAL,
+    UNLIKE,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -49,6 +51,8 @@ pub(crate) fn op_parser(input: &[u8]) -> IResult<&[u8], Operator> {
                 value(Operator::GREATER, tag(">")),
                 value(Operator::EQUAL, tag("=")),
                 value(Operator::SMALLER, tag("<")),
+                value(Operator::UNEQUAL, tag("<>")),
+                value(Operator::UNLIKE, tag("!~")),
             )
         ),
         multispace0
