@@ -9,12 +9,12 @@
  //! See the file LICENSE for details.
  //!
 
- use crate::parsers::incoming::case::{Case, case_parser};
+ use crate::parsers::incoming::unsupported::{unsupported_parser};
  use crate::parsers::parser_error::ParserError;
 
- fn parse_terminate(input: &[u8]) -> Result<Terminate, ParserError> {
-     match case_parser(input) {
-         Ok((_, term)) => Ok(term),
+ fn parse_unsupported(input: &[u8]) -> Result<bool, ParserError> {
+     match unsupported_parser(input) {
+         Ok((_, valid_but_unsupported)) => Ok(valid_but_unsupported),
          Err(e) => Err(ParserError {
              message: e.to_string()
          })
@@ -31,9 +31,10 @@ static MESSAGE: &'static str = r#"CASE c.relkind WHEN 'r' THEN 'table'
  WHEN 'I' THEN 'partitioned index' END"#;
 
  #[test]
- fn should_parse_case() {
-     match parse_case(MESSAGE.as_bytes()) {
-         Ok(case) => {
+ fn should_parse_unsupported_case() {
+     match parse_unsupported(MESSAGE.as_bytes()) {
+         Ok(valid_but_unsupported) => {
+             assert!(valid_but_unsupported);
          },
          Err(e) => panic!("Error: {}", e),
      }
