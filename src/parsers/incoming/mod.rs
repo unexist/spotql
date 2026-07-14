@@ -12,6 +12,7 @@
 pub mod startup;
 pub mod query;
 pub mod statement;
+pub mod expression;
 pub mod column;
 pub mod predicate;
 pub mod auth;

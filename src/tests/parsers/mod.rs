@@ -14,6 +14,7 @@ mod query;
 mod statement;
 mod predicate;
 mod auth;
+mod expression;
 mod column;
 mod terminate;
 mod unsupported;
