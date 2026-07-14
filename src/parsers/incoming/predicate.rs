@@ -14,7 +14,7 @@ use nom::multi::many0;
 use nom::{IResult, branch::alt, bytes::tag, character::complete::multispace0, combinator::value, combinator::complete, sequence::delimited};
 use nom::Parser;
 
-use crate::parsers::incoming::column::{column_name_parser};
+use crate::parsers::incoming::expression::expression_parser;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Operator {
@@ -77,9 +77,9 @@ pub(crate) fn combinator_parser(input: &[u8]) -> IResult<&[u8], Combinator> {
 pub(crate) fn predicate_parser(input: &[u8]) -> IResult<&[u8], Predicate<'_>> {
     map(
         (
-            column_name_parser,
+            expression_parser,
             op_parser,
-            column_name_parser,
+            expression_parser,
             opt(combinator_parser),
         ),
         |(left_hand, op, right_hand, combinator)| Predicate {
