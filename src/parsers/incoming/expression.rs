@@ -18,14 +18,16 @@ pub(crate) fn expression_parser(input: &[u8]) -> IResult<&[u8], &str> {
     map_res(
         delimited(
             multispace0,
-            alt(
-                (
-                    alphanumeric1,
-                    tag("~"),
-                    tag("!"),
-                    tag("<"),
-                    tag(">"),
-                    tag("="),
+            all_consuming(
+                alt(
+                    (
+                        alphanumeric1,
+                        tag("~"),
+                        tag("!"),
+                        tag("<"),
+                        tag(">"),
+                        tag("="),
+                    )
                 )
             ),
             multispace0,
