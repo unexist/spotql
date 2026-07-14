@@ -23,6 +23,9 @@ pub(crate) fn expression_parser(input: &[u8]) -> IResult<&[u8], &str> {
                     alphanumeric1,
                     tag("~"),
                     tag("!"),
+                    tag("<"),
+                    tag(">"),
+                    tag("="),
                 )
             ),
             multispace0,
