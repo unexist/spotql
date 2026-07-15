@@ -13,10 +13,11 @@ use nom::combinator::{map, opt};
 use nom::multi::many0;
 use nom::{IResult, branch::alt, bytes::tag, character::complete::multispace0, combinator::value, combinator::complete, sequence::delimited};
 use nom::Parser;
+use strum::AsRefStr;
 
 use crate::parsers::incoming::expression::expression_parser;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, AsRefStr)]
 pub enum Operator {
     GREATER,
     EQUAL,
