@@ -24,3 +24,4 @@ clap-config-file = "0.6.0"
 serde = { version = "1.0.228", features = ["derive"] }
 config = "0.15.25"
 stdext = "0.3.3"
+strum = { version = "0.28.0", features = ["derive"] }
