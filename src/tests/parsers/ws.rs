@@ -14,9 +14,7 @@ use nom::{Parser, bytes::complete::tag};
 use crate::parsers::{incoming::ws::ws, parser_error::ParserError};
 
 fn parse_whitespaced_tag(input: &[u8]) -> Result<&[u8], ParserError> {
-    let mut parser = ws(tag(&b"test"[..]));
-
-    match parser.parse(input) {
+    match ws(tag(&b"test"[..])).parse(input) {
         Ok((_, tag)) => Ok(tag),
         Err(e) => Err(ParserError {
             message: e.to_string()
