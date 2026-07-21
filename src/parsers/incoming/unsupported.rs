@@ -9,11 +9,12 @@
 //! See the file LICENSE for details.
 //!
 
-use nom::bytes::tag;
-use nom::combinator::{complete, map};
+use nom::branch::alt;
+use nom::combinator::map;
 use nom::multi::many0;
 use nom::IResult;
 use nom::Parser;
+use nom::sequence::pair;
 
 use crate::parsers::incoming::expression::expression_parser;
 use crate::parsers::incoming::ws::{btag, ws};
@@ -22,21 +23,22 @@ use crate::parsers::incoming::ws::{btag, ws};
 pub(crate) fn unsupported_case_parser(input: &[u8]) -> IResult<&[u8], bool> {
     map(
         (
-            tag("case"),
+            ws(btag("case")),
             expression_parser,
-            complete(
-                many0(
-                    complete(
-                        (
-                            ws(btag("when")),
-                            expression_parser,
-                            ws(btag("then")),
-                            expression_parser
+            many0(
+                pair(
+                    ws(
+                        alt(
+                            (
+                                btag("when"),
+                                btag("then"),
+                            )
                         )
-                    )
+                    ),
+                    expression_parser
                 )
             ),
-            tag("end"),
+            ws(btag("end")),
         ),
         |(case_start, expression, when_then, case_end)| {
             println!("{:?}", when_then);
