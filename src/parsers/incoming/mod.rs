@@ -9,6 +9,7 @@
 //! See the file LICENSE for details.
 //!
 
+pub mod ws;
 pub mod startup;
 pub mod query;
 pub mod statement;
