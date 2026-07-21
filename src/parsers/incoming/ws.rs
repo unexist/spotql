@@ -10,9 +10,19 @@
 //!
 
 use nom::Parser;
-use nom::error::Error;
+use nom::bytes::complete::tag;
+use nom::error::{Error, ParseError};
 use nom::sequence::delimited;
 use nom::character::complete::multispace0;
+
+pub fn btag<'a, E>(
+    s: &'static str,
+) -> impl Parser<&'a [u8], Output = &'a [u8], Error = E>
+where
+    E: ParseError<&'a [u8]>,
+{
+    tag(s.as_bytes())
+}
 
 /* https://docs.rs/nom/latest/nom/recipes/index.html#whitespace */
 pub fn ws<'a, O, F>(
