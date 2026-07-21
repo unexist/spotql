@@ -16,7 +16,7 @@ use nom::IResult;
 use nom::Parser;
 
 use crate::parsers::incoming::expression::expression_parser;
-use crate::parsers::incoming::ws::ws;
+use crate::parsers::incoming::ws::{btag, ws};
 
 /* Case statement: case expr when expr then expr end */
 pub(crate) fn unsupported_case_parser(input: &[u8]) -> IResult<&[u8], bool> {
@@ -28,9 +28,9 @@ pub(crate) fn unsupported_case_parser(input: &[u8]) -> IResult<&[u8], bool> {
                 many0(
                     complete(
                         (
-                            ws(tag(&b"when"[..])),
+                            ws(btag("when")),
                             expression_parser,
-                            ws(tag(&b"then"[..])),
+                            ws(btag("then")),
                             expression_parser
                         )
                     )

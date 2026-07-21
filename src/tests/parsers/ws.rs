@@ -9,12 +9,12 @@
 //! See the file LICENSE for details.
 //!
 
-use nom::{Parser, bytes::complete::tag};
+use nom::Parser;
 
-use crate::parsers::{incoming::ws::ws, parser_error::ParserError};
+use crate::parsers::{incoming::ws::{btag, ws}, parser_error::ParserError};
 
 fn parse_whitespaced_tag(input: &[u8]) -> Result<&[u8], ParserError> {
-    match ws(tag(&b"test"[..])).parse(input) {
+    match ws(btag("test")).parse(input) {
         Ok((_, tag)) => Ok(tag),
         Err(e) => Err(ParserError {
             message: e.to_string()

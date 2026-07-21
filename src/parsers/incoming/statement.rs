@@ -22,7 +22,7 @@ use nom::sequence::preceded;
 
 use crate::parsers::incoming::predicate::{Predicate, predicate_parser};
 use crate::parsers::incoming::column::{Column, column_list_parser};
-use crate::parsers::incoming::ws::ws;
+use crate::parsers::incoming::ws::{btag, ws};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Verb {
@@ -57,12 +57,8 @@ pub(crate) fn table_parser(input: &[u8]) -> IResult<&[u8], &str> {
     complete(
         map_res(
             preceded(
-                ws(
-                    tag(&b"from"[..])
-                ),
-                ws(
-                    alphanumeric1
-                )
+                ws(btag("from")),
+                ws(alphanumeric1)
             ), str::from_utf8
         )
     ).parse(input)
@@ -71,9 +67,7 @@ pub(crate) fn table_parser(input: &[u8]) -> IResult<&[u8], &str> {
 pub(crate) fn predicate_list_parser(input: &[u8]) -> IResult<&[u8], Vec<Predicate<'_>>> {
     complete(
         preceded(
-            ws(
-                tag(&b"where"[..]),
-            ),
+            ws(btag("where")),
             many1(
                 complete(predicate_parser)
             )

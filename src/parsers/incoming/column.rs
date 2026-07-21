@@ -15,7 +15,7 @@ use nom::{IResult, branch::alt, bytes::tag, character::complete::{
 }, combinator::{complete, map, map_res, opt}, multi::separated_list0, sequence::{delimited, preceded}};
 use nom::Parser;
 
-use crate::parsers::incoming::ws::ws;
+use crate::parsers::incoming::ws::{btag, ws};
 
 #[derive(Debug)]
 pub struct Column<'a> {
@@ -32,7 +32,7 @@ pub(crate) fn column_name_parser(input: &[u8]) -> IResult<&[u8], &str> {
         ws(
             alt(
                 (
-                    tag(&b"*"[..]),
+                    btag("*"),
                     alphanumeric1
                 )
             ),
@@ -47,9 +47,7 @@ pub(crate) fn column_parser(input: &[u8]) -> IResult<&[u8], Column<'_>> {
             opt(
                 complete(
                     preceded(
-                        ws(
-                            tag(&b"as"[..])
-                        ),
+                        ws(btag("as")),
                         column_name_parser
                     ),
                 )
