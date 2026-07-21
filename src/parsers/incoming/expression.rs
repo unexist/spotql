@@ -18,8 +18,6 @@ use crate::parsers::incoming::ws::ws;
 
 pub(crate) fn expression_parser(input: &[u8]) -> IResult<&[u8], &str> {
     map_res(
-        ws(
-            alphanumeric1,
-        ), str::from_utf8
+        ws(alphanumeric1), str::from_utf8
     ).parse(input)
 }

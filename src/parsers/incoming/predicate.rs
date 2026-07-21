@@ -93,9 +93,7 @@ pub(crate) fn predicate_list_parser(input: &[u8]) -> IResult<&[u8], Vec<Predicat
     complete(
         many0(
             complete(
-                ws(
-                    predicate_parser
-                )
+                ws(predicate_parser)
             )
         )
     ).parse(input)
