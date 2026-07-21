@@ -9,7 +9,7 @@
 //! See the file LICENSE for details.
 //!
 
-use nom::{IResult, branch::alt, bytes::tag, character::complete::{
+use nom::{IResult, character::complete::{
     alphanumeric1, multispace0
 }, combinator::map_res, sequence::delimited};
 use nom::Parser;
@@ -18,18 +18,7 @@ pub(crate) fn expression_parser(input: &[u8]) -> IResult<&[u8], &str> {
     map_res(
         delimited(
             multispace0,
-            all_consuming(
-                alt(
-                    (
-                        alphanumeric1,
-                        tag("~"),
-                        tag("!"),
-                        tag("<"),
-                        tag(">"),
-                        tag("="),
-                    )
-                )
-            ),
+            alphanumeric1,
             multispace0,
         ), str::from_utf8
     ).parse(input)
