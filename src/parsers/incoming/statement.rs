@@ -13,16 +13,16 @@ use std::str;
 use nom::branch::alt;
 use nom::bytes::tag;
 use nom::character::complete::{
-    multispace0,
     alphanumeric1,
 };
 use nom::combinator::{complete, map, map_res, opt, value};
 use nom::multi::many1;
 use nom::{IResult, Parser};
-use nom::sequence::{delimited, preceded};
+use nom::sequence::preceded;
 
 use crate::parsers::incoming::predicate::{Predicate, predicate_parser};
 use crate::parsers::incoming::column::{Column, column_list_parser};
+use crate::parsers::incoming::ws::ws;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Verb {
@@ -43,15 +43,13 @@ pub struct Statement<'a> {
 //
 
 pub(crate) fn verb_parser(input: &[u8]) -> IResult<&[u8], Verb> {
-    delimited(
-        multispace0,
+    ws(
         alt(
             (
                 value(Verb::SELECT, tag("select")),
                 value(Verb::UPDATE, tag("update")),
             )
-        ),
-        multispace0
+        )
     ).parse(input)
 }
 
@@ -59,15 +57,11 @@ pub(crate) fn table_parser(input: &[u8]) -> IResult<&[u8], &str> {
     complete(
         map_res(
             preceded(
-                delimited(
-                    multispace0,
-                    tag("from"),
-                    multispace0
+                ws(
+                    tag(&b"from"[..])
                 ),
-                delimited(
-                    multispace0,
-                    alphanumeric1,
-                    multispace0
+                ws(
+                    alphanumeric1
                 )
             ), str::from_utf8
         )
@@ -77,10 +71,8 @@ pub(crate) fn table_parser(input: &[u8]) -> IResult<&[u8], &str> {
 pub(crate) fn predicate_list_parser(input: &[u8]) -> IResult<&[u8], Vec<Predicate<'_>>> {
     complete(
         preceded(
-            delimited(
-                multispace0,
-                tag("where"),
-                multispace0
+            ws(
+                tag(&b"where"[..]),
             ),
             many1(
                 complete(predicate_parser)

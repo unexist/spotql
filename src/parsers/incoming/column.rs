@@ -15,6 +15,8 @@ use nom::{IResult, branch::alt, bytes::tag, character::complete::{
 }, combinator::{complete, map, map_res, opt}, multi::separated_list0, sequence::{delimited, preceded}};
 use nom::Parser;
 
+use crate::parsers::incoming::ws::ws;
+
 #[derive(Debug)]
 pub struct Column<'a> {
     pub name: &'a str,
@@ -27,15 +29,13 @@ pub struct Column<'a> {
 
 pub(crate) fn column_name_parser(input: &[u8]) -> IResult<&[u8], &str> {
     map_res(
-        delimited(
-            multispace0,
+        ws(
             alt(
                 (
-                    tag("*"),
+                    tag(&b"*"[..]),
                     alphanumeric1
                 )
             ),
-            multispace0
         ), str::from_utf8
     ).parse(input)
 }
@@ -47,10 +47,8 @@ pub(crate) fn column_parser(input: &[u8]) -> IResult<&[u8], Column<'_>> {
             opt(
                 complete(
                     preceded(
-                        delimited(
-                            multispace0,
-                            tag("as"),
-                            multispace0,
+                        ws(
+                            tag(&b"as"[..])
                         ),
                         column_name_parser
                     ),

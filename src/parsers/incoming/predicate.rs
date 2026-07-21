@@ -11,11 +11,12 @@
 
 use nom::combinator::{map, opt};
 use nom::multi::many0;
-use nom::{IResult, branch::alt, bytes::tag, character::complete::multispace0, combinator::value, combinator::complete, sequence::delimited};
+use nom::{IResult, branch::alt, bytes::tag, combinator::value, combinator::complete};
 use nom::Parser;
 use strum::AsRefStr;
 
 use crate::parsers::incoming::expression::expression_parser;
+use crate::parsers::incoming::ws::ws;
 
 #[derive(Debug, PartialEq, Clone, AsRefStr)]
 pub enum Operator {
@@ -45,32 +46,28 @@ pub struct Predicate<'a> {
 //
 
 pub(crate) fn op_parser(input: &[u8]) -> IResult<&[u8], Operator> {
-    delimited(
-        multispace0,
+    ws(
         alt(
             (
                 value(Operator::GREATER, tag(">")),
                 value(Operator::EQUAL, tag("=")),
-                value(Operator::SMALLER, tag("<")),
                 value(Operator::UNEQUAL, tag("<>")),
+                value(Operator::SMALLER, tag("<")),
                 value(Operator::UNLIKE, tag("!~")),
             )
-        ),
-        multispace0
+        )
     ).parse(input)
 }
 
 pub(crate) fn combinator_parser(input: &[u8]) -> IResult<&[u8], Combinator> {
     complete(
-        delimited(
-            multispace0,
+        ws(
             alt(
                 (
                     value(Combinator::AND, tag("and")),
                     value(Combinator::OR, tag("or")),
                 )
-            ),
-            multispace0
+            )
         )
     ).parse(input)
 }
@@ -96,10 +93,8 @@ pub(crate) fn predicate_list_parser(input: &[u8]) -> IResult<&[u8], Vec<Predicat
     complete(
         many0(
             complete(
-                delimited(
-                    multispace0,
-                    predicate_parser,
-                    multispace0
+                ws(
+                    predicate_parser
                 )
             )
         )

@@ -10,16 +10,16 @@
 //!
 
 use nom::{IResult, character::complete::{
-    alphanumeric1, multispace0
-}, combinator::map_res, sequence::delimited};
+    alphanumeric1
+}, combinator::map_res};
 use nom::Parser;
+
+use crate::parsers::incoming::ws::ws;
 
 pub(crate) fn expression_parser(input: &[u8]) -> IResult<&[u8], &str> {
     map_res(
-        delimited(
-            multispace0,
+        ws(
             alphanumeric1,
-            multispace0,
         ), str::from_utf8
     ).parse(input)
 }

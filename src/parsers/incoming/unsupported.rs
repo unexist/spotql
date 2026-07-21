@@ -13,30 +13,35 @@ use nom::bytes::tag;
 use nom::combinator::{complete, map};
 use nom::multi::many0;
 use nom::IResult;
-use nom::character::complete::anychar;
 use nom::Parser;
 
 use crate::parsers::incoming::expression::expression_parser;
+use crate::parsers::incoming::ws::ws;
 
 /* Case statement: case expr when expr then expr end */
 pub(crate) fn unsupported_case_parser(input: &[u8]) -> IResult<&[u8], bool> {
     map(
         (
             tag("case"),
-            anychar,
-            many0(
-                complete(
-                    (
-                        tag("when"),
-                        expression_parser,
-                        tag("then"),
-                        expression_parser
+            expression_parser,
+            complete(
+                many0(
+                    complete(
+                        (
+                            ws(tag(&b"when"[..])),
+                            expression_parser,
+                            ws(tag(&b"then"[..])),
+                            expression_parser
+                        )
                     )
                 )
             ),
             tag("end"),
         ),
-        |foo| true
+        |(case_start, expression, when_then, case_end)| {
+            println!("{:?}", when_then);
+            true
+        }
     ).parse(input)
 }
 
