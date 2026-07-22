@@ -9,6 +9,7 @@
 //! See the file LICENSE for details.
 //!
 
+use nom::bytes::tag_no_case;
 use nom::combinator::{map, opt};
 use nom::multi::many0;
 use nom::{IResult, branch::alt, bytes::tag, combinator::value, combinator::complete};
@@ -64,8 +65,8 @@ pub(crate) fn combinator_parser(input: &[u8]) -> IResult<&[u8], Combinator> {
         ws(
             alt(
                 (
-                    value(Combinator::AND, tag("and")),
-                    value(Combinator::OR, tag("or")),
+                    value(Combinator::AND, tag_no_case("and")),
+                    value(Combinator::OR, tag_no_case("or")),
                 )
             )
         )

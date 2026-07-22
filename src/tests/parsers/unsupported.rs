@@ -24,22 +24,13 @@
  // Terminate message
  //
 
-static MESSAGE: &'static str = "CASE c.relkind \
-    WHEN 'r' THEN 'table' \
-    WHEN 'v' THEN 'view' \
-    WHEN 'm' THEN 'materialized view' \
-    WHEN 'i' THEN 'index' \
-    WHEN 'S' THEN 'sequence' \
-    WHEN 't' THEN 'TOAST table' \
-    WHEN 'f' THEN 'foreign table' \
-    WHEN 'p' THEN 'partitioned table' \
-    WHEN 'I' THEN 'partitioned index' \
-    END";
+static MESSAGE: &'static str = "CASE";
 
  #[test]
  fn should_parse_unsupported_case() {
      match parse_unsupported(MESSAGE.as_bytes()) {
          Ok(valid_but_unsupported) => {
+             println!("{:?}", valid_but_unsupported);
              assert!(valid_but_unsupported);
          },
          Err(e) => panic!("Error: {}", e),

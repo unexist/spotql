@@ -11,7 +11,7 @@
 
 use std::str;
 use nom::branch::alt;
-use nom::bytes::tag;
+use nom::bytes::{tag, tag_no_case};
 use nom::character::complete::{
     alphanumeric1,
 };
@@ -46,8 +46,8 @@ pub(crate) fn verb_parser(input: &[u8]) -> IResult<&[u8], Verb> {
     ws(
         alt(
             (
-                value(Verb::SELECT, tag("select")),
-                value(Verb::UPDATE, tag("update")),
+                value(Verb::SELECT, tag_no_case("select")),
+                value(Verb::UPDATE, tag_no_case("update")),
             )
         )
     ).parse(input)

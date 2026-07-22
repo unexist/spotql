@@ -40,16 +40,17 @@ pub(crate) fn unsupported_case_parser(input: &[u8]) -> IResult<&[u8], bool> {
             ),
             ws(btag("end")),
         ),
-        |(case_start, expression, when_then, case_end)| {
-            println!("{:?}", when_then);
-            true
-        }
+        |(case_start, expression, when_then, case_end)| true
     ).parse(input)
 }
 
 pub(crate) fn unsupported_parser(input: &[u8]) -> IResult<&[u8], bool> {
     map(
-        unsupported_case_parser,
+        alt(
+            (
+                unsupported_case_parser,
+            )
+        ),
         |_| true
     ).parse(input)
 }

@@ -10,24 +10,20 @@
 //!
 
 use nom::Parser;
-use nom::bytes::complete::tag;
+use nom::bytes::complete::tag_no_case;
 use nom::error::{Error, ParseError};
 use nom::sequence::delimited;
 use nom::character::complete::multispace0;
 
-pub fn btag<'a, E>(
-    s: &'static str,
-) -> impl Parser<&'a [u8], Output = &'a [u8], Error = E>
+pub fn btag<'a, E>(s: &'static str) -> impl Parser<&'a [u8], Output = &'a [u8], Error = E>
 where
     E: ParseError<&'a [u8]>,
 {
-    tag(s.as_bytes())
+    tag_no_case(s.as_bytes())
 }
 
 /* https://docs.rs/nom/latest/nom/recipes/index.html#whitespace */
-pub fn ws<'a, O, F>(
-    inner: F,
-) -> impl Parser<&'a [u8], Output = O, Error = Error<&'a [u8]>>
+pub fn ws<'a, O, F>(inner: F) -> impl Parser<&'a [u8], Output = O, Error = Error<&'a [u8]>>
 where
     F: Parser<&'a [u8], Output = O, Error = Error<&'a [u8]>>,
 {
