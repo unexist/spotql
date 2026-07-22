@@ -9,13 +9,13 @@
 //! See the file LICENSE for details.
 //!
 
-mod common;
-mod startup;
-mod query;
-mod statement;
-mod predicate;
-mod auth;
-mod expression;
-mod column;
-mod terminate;
-mod unsupported;
+mod common_test;
+mod startup_test;
+mod query_test;
+mod statement_test;
+mod predicate_test;
+mod auth_test;
+mod expression_test;
+mod column_test;
+mod terminate_test;
+mod unsupported_test;

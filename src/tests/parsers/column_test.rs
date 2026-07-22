@@ -38,6 +38,19 @@ fn parse_columns(input: &str) -> Result<Vec<Column<'_>>, ParserError> {
 fn should_parse_simple_column() {
     match parse_column("songs") {
         Ok(col) => {
+            assert!(col.table.is_none());
+            assert_eq!(col.name, "songs");
+            assert!(col.alias.is_none());
+        },
+        Err(e) => panic!("Error: {}", e),
+    }
+}
+
+#[test]
+fn should_parse_simple_column_with_table() {
+    match parse_column("spotify.songs") {
+        Ok(col) => {
+            assert_eq!(col.table, Some("spotify"));
             assert_eq!(col.name, "songs");
             assert!(col.alias.is_none());
         },
@@ -49,6 +62,7 @@ fn should_parse_simple_column() {
 fn should_parse_simple_column_with_alias() {
     match parse_column("songs as foo") {
         Ok(col) => {
+            assert!(col.table.is_none());
             assert_eq!(col.name, "songs");
             assert_eq!(col.alias, Some("foo"));
         },
@@ -64,9 +78,11 @@ fn should_parse_simple_column_with_alias() {
 fn should_parse_multi_columns() {
     match parse_columns("songs, tracks") {
         Ok(cols) => {
+            assert!(cols[0].table.is_none());
             assert_eq!(cols[0].name, "songs");
             assert!(cols[0].alias.is_none());
 
+            assert!(cols[1].table.is_none());
             assert_eq!(cols[1].name, "tracks");
             assert!(cols[1].alias.is_none());
         },
@@ -78,9 +94,11 @@ fn should_parse_multi_columns() {
 fn should_parse_multi_columns_with_aliases() {
     match parse_columns("songs as foo, tracks as bar") {
         Ok(cols) => {
+            assert!(cols[0].table.is_none());
             assert_eq!(cols[0].name, "songs");
             assert_eq!(cols[0].alias, Some("foo"));
 
+            assert!(cols[1].table.is_none());
             assert_eq!(cols[1].name, "tracks");
             assert_eq!(cols[1].alias, Some("bar"));
         },
