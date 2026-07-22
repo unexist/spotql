@@ -14,7 +14,7 @@ use nom::{IResult, character::complete::{
 }, combinator::map_res};
 use nom::Parser;
 
-use crate::parsers::incoming::ws::ws;
+use crate::parsers::incoming::common::ws;
 
 pub(crate) fn expression_parser(input: &[u8]) -> IResult<&[u8], &str> {
     map_res(

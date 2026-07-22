@@ -17,7 +17,7 @@ use nom::Parser;
 use strum::AsRefStr;
 
 use crate::parsers::incoming::expression::expression_parser;
-use crate::parsers::incoming::ws::ws;
+use crate::parsers::incoming::common::ws;
 
 #[derive(Debug, PartialEq, Clone, AsRefStr)]
 pub enum Operator {

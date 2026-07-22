@@ -15,7 +15,7 @@ use nom::{IResult, branch::alt, bytes::tag, character::complete::{
 }, combinator::{complete, map, map_res, opt}, multi::separated_list0, sequence::{delimited, preceded}};
 use nom::Parser;
 
-use crate::parsers::incoming::ws::{btag, ws};
+use crate::parsers::incoming::common::{btag, ws};
 
 #[derive(Debug)]
 pub struct Column<'a> {

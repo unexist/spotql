@@ -22,7 +22,7 @@ use nom::sequence::preceded;
 
 use crate::parsers::incoming::predicate::{Predicate, predicate_parser};
 use crate::parsers::incoming::column::{Column, column_list_parser};
-use crate::parsers::incoming::ws::{btag, ws};
+use crate::parsers::incoming::common::{btag, ws};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Verb {

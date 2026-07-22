@@ -24,7 +24,7 @@
  // Terminate message
  //
 
-static MESSAGE: &'static str = "CASE";
+static MESSAGE: &'static str = "CASE c.relkind END";
 
  #[test]
  fn should_parse_unsupported_case() {

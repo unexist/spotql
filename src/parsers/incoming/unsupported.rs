@@ -10,6 +10,7 @@
 //!
 
 use nom::branch::alt;
+use nom::combinator::complete;
 use nom::combinator::map;
 use nom::multi::many0;
 use nom::IResult;
@@ -17,7 +18,7 @@ use nom::Parser;
 use nom::sequence::pair;
 
 use crate::parsers::incoming::expression::expression_parser;
-use crate::parsers::incoming::ws::{btag, ws};
+use crate::parsers::incoming::common::{btag, ws};
 
 /* Case statement: case expr when expr then expr end */
 pub(crate) fn unsupported_case_parser(input: &[u8]) -> IResult<&[u8], bool> {
@@ -25,17 +26,19 @@ pub(crate) fn unsupported_case_parser(input: &[u8]) -> IResult<&[u8], bool> {
         (
             ws(btag("case")),
             expression_parser,
-            many0(
-                pair(
-                    ws(
-                        alt(
-                            (
-                                btag("when"),
-                                btag("then"),
+            complete(
+                many0(
+                    pair(
+                        ws(
+                            alt(
+                                (
+                                    btag("when"),
+                                    btag("then"),
+                                )
                             )
-                        )
-                    ),
-                    expression_parser
+                        ),
+                        expression_parser
+                    )
                 )
             ),
             ws(btag("end")),

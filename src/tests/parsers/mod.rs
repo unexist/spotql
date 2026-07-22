@@ -9,7 +9,7 @@
 //! See the file LICENSE for details.
 //!
 
-mod ws;
+mod common;
 mod startup;
 mod query;
 mod statement;
