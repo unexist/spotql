@@ -88,7 +88,6 @@ fn should_parse_combi_greater_and_equal_predicates() {
 fn should_parse_combi_unequal_and_unlike_predicates() {
     match parse_predicates("playcount <> 25 and a !~ b") {
         Ok(preds) => {
-            println!("{:?}", preds);
             assert_eq!(preds.len(), 2);
 
             assert_eq!(preds[0].left_hand, "playcount");
