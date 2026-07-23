@@ -70,6 +70,18 @@ fn should_parse_simple_column_with_alias() {
     }
 }
 
+#[test]
+fn should_parse_simple_column_with_table_and_alias() {
+    match parse_column("spotify.songs as foo") {
+        Ok(col) => {
+            assert_eq!(col.table, Some("spotify"));
+            assert_eq!(col.name, "songs");
+            assert_eq!(col.alias, Some("foo"));
+        },
+        Err(e) => panic!("Error: {}", e),
+    }
+}
+
 ///
 /// Multiple columns
 ///
@@ -91,7 +103,23 @@ fn should_parse_multi_columns() {
 }
 
 #[test]
-fn should_parse_multi_columns_with_aliases() {
+fn should_parse_multi_columns_with_table() {
+    match parse_columns("spotify.songs, spotify.tracks") {
+        Ok(cols) => {
+            assert_eq!(cols[0].table, Some("spotify"));
+            assert_eq!(cols[0].name, "songs");
+            assert!(cols[0].alias.is_none());
+
+            assert_eq!(cols[1].table, Some("spotify"));
+            assert_eq!(cols[1].name, "tracks");
+            assert!(cols[1].alias.is_none());
+        },
+        Err(e) => panic!("Error: {}", e),
+    }
+}
+
+#[test]
+fn should_parse_multi_columns_with_tables_and_aliases() {
     match parse_columns("songs as foo, tracks as bar") {
         Ok(cols) => {
             assert!(cols[0].table.is_none());
@@ -99,6 +127,22 @@ fn should_parse_multi_columns_with_aliases() {
             assert_eq!(cols[0].alias, Some("foo"));
 
             assert!(cols[1].table.is_none());
+            assert_eq!(cols[1].name, "tracks");
+            assert_eq!(cols[1].alias, Some("bar"));
+        },
+        Err(e) => panic!("Error: {}", e),
+    }
+}
+
+#[test]
+fn should_parse_multi_columns_with_aliases() {
+    match parse_columns("spotify.songs as foo, spotify.tracks as bar") {
+        Ok(cols) => {
+            assert_eq!(cols[0].table, Some("spotify"));
+            assert_eq!(cols[0].name, "songs");
+            assert_eq!(cols[0].alias, Some("foo"));
+
+            assert_eq!(cols[1].table, Some("spotify"));
             assert_eq!(cols[1].name, "tracks");
             assert_eq!(cols[1].alias, Some("bar"));
         },
