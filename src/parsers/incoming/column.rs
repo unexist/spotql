@@ -10,17 +10,35 @@
 //!
 
 use std::str;
-use nom::{IResult, branch::alt, bytes::tag, character::complete::{
-    alphanumeric1, multispace0
-}, combinator::{complete, map, map_res, opt}, multi::separated_list0, sequence::{delimited, preceded}};
+use nom::{AsChar, IResult, branch::alt, bytes::{complete::take_while1, tag}, character::complete::alphanumeric1, combinator::{complete, map, map_res, opt}, multi::separated_list0, sequence::{delimited, preceded, terminated}
+};
 use nom::Parser;
 
 use crate::parsers::incoming::common::{btag, ws};
 
 #[derive(Debug)]
 pub struct Column<'a> {
+    pub table: Option<&'a str>,
     pub name: &'a str,
     pub alias: Option<&'a str>,
+}
+
+#[inline]
+fn is_sql_identifier(chr: u8) -> bool {
+    AsChar::is_alphanum(chr) || '_' as u8 == chr || '@' as u8 == chr
+}
+
+pub(crate) fn identifier_parser(input: &[u8]) -> IResult<&[u8], &str> {
+    map_res(
+        ws(
+            alt((
+                btag("*"),
+                delimited(btag("`"), take_while1(is_sql_identifier), btag("`")),
+                delimited(btag("["), take_while1(is_sql_identifier), btag("]")),
+                take_while1(is_sql_identifier),
+            ))
+        ), str::from_utf8
+    ).parse(input)
 }
 
 //
@@ -41,19 +59,24 @@ pub(crate) fn column_name_parser(input: &[u8]) -> IResult<&[u8], &str> {
 }
 
 pub(crate) fn column_parser(input: &[u8]) -> IResult<&[u8], Column<'_>> {
-    map(
-        (
-            column_name_parser,
-            opt(
-                complete(
-                    preceded(
-                        ws(btag("as")),
-                        column_name_parser
-                    ),
-                )
+    map((
+        opt(
+            terminated(
+                identifier_parser,
+                tag("."),
             )
         ),
-        |(name, alias)| Column {
+        identifier_parser,
+        opt(
+            complete(
+                preceded(
+                    ws(btag("as")),
+                    identifier_parser
+                ),
+            )
+        )),
+        |(table, name, alias)| Column {
+            table,
             name,
             alias,
         }
@@ -63,12 +86,7 @@ pub(crate) fn column_parser(input: &[u8]) -> IResult<&[u8], Column<'_>> {
 pub(crate) fn column_list_parser(input: &[u8]) -> IResult<&[u8], Vec<Column<'_>>> {
     complete(
         separated_list0(
-            complete(
-                delimited(
-                    multispace0,
-                    tag(","),
-                    multispace0,
-                )
-            ), column_parser
+            ws(btag(",")),
+            column_parser
     )).parse(input)
 }
