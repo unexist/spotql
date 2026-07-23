@@ -61,9 +61,11 @@ pub(crate) fn column_name_parser(input: &[u8]) -> IResult<&[u8], &str> {
 pub(crate) fn column_parser(input: &[u8]) -> IResult<&[u8], Column<'_>> {
     map((
         opt(
-            terminated(
-                identifier_parser,
-                tag("."),
+            complete(
+                terminated(
+                    identifier_parser,
+                    tag("."),
+                )
             )
         ),
         identifier_parser,
