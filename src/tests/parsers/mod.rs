@@ -10,6 +10,7 @@
 //!
 
 mod common_test;
+mod identifier_test;
 mod startup_test;
 mod query_test;
 mod statement_test;

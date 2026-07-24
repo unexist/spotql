@@ -10,6 +10,7 @@
 //!
 
 pub mod common;
+pub mod identifier;
 pub mod startup;
 pub mod query;
 pub mod statement;
