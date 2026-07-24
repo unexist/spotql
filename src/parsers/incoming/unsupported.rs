@@ -30,12 +30,10 @@ pub(crate) fn unsupported_case_parser(input: &[u8]) -> IResult<&[u8], bool> {
                 many0(
                     pair(
                         ws(
-                            alt(
-                                (
-                                    btag("when"),
-                                    btag("then"),
-                                )
-                            )
+                            alt((
+                                btag("when"),
+                                btag("then"),
+                            ))
                         ),
                         expression_parser
                     )
