@@ -10,7 +10,7 @@
 //!
 
 use std::str;
-use nom::{AsChar, IResult, branch::alt, bytes::{complete::take_while1, tag}, character::complete::alphanumeric1, combinator::{complete, map, map_res, opt}, multi::separated_list0, sequence::{delimited, preceded, terminated}
+use nom::{AsChar, IResult, branch::alt, bytes::{complete::take_while1, tag}, combinator::{complete, map, map_res, opt}, multi::separated_list0, sequence::{delimited, preceded, terminated}
 };
 use nom::Parser;
 
@@ -22,6 +22,10 @@ pub struct Column<'a> {
     pub name: &'a str,
     pub alias: Option<&'a str>,
 }
+
+//
+// Identifier parser
+//
 
 #[inline]
 fn is_sql_identifier(chr: u8) -> bool {
@@ -44,19 +48,6 @@ pub(crate) fn identifier_parser(input: &[u8]) -> IResult<&[u8], &str> {
 //
 // Column parser
 //
-
-pub(crate) fn column_name_parser(input: &[u8]) -> IResult<&[u8], &str> {
-    map_res(
-        ws(
-            alt(
-                (
-                    btag("*"),
-                    alphanumeric1
-                )
-            ),
-        ), str::from_utf8
-    ).parse(input)
-}
 
 pub(crate) fn column_parser(input: &[u8]) -> IResult<&[u8], Column<'_>> {
     map((
