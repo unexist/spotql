@@ -17,6 +17,7 @@ use nom::IResult;
 use nom::Parser;
 use nom::sequence::pair;
 
+use crate::parsers::incoming::column::column_parser;
 use crate::parsers::incoming::expression::expression_parser;
 use crate::parsers::incoming::common::{btag, ws};
 
@@ -25,7 +26,7 @@ pub(crate) fn unsupported_case_parser(input: &[u8]) -> IResult<&[u8], bool> {
     map(
         (
             ws(btag("case")),
-            expression_parser,
+            column_parser,
             complete(
                 many0(
                     pair(
