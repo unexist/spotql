@@ -18,7 +18,7 @@ mod logger;
 mod config;
 mod wire;
 
-use anyhow::{Result, bail};
+use anyhow::Result;
 use log::{debug, error, info};
 use tokio::{net::{TcpListener, TcpStream}, signal};
 #[allow(unused_imports)]
@@ -97,41 +97,38 @@ async fn handle_connection(mut socket: TcpStream, token: CancellationToken) -> R
                     continue;
                 }
 
-                match parse_message(&buf[0..n]) {
-                    Ok(result) => {
-                        match result {
-                            Message::Startup(startup) => {
-                                info!("Received startup message: {:?}", startup);
+                if let Ok(result) = parse_message(&buf[0..n]) {
+                    match result {
+                        Message::Startup(startup) => {
+                            info!("Received startup message: {:?}", startup);
 
-                                //send_proto_negotiation(&mut socket).await?;
-                                send_auth_request(&mut socket).await?;
-                            },
-                            Message::Auth(auth) => {
-                                info!("Received auth message: {:?}", auth);
+                            //send_proto_negotiation(&mut socket).await?;
+                            send_auth_request(&mut socket).await?;
+                        },
+                        Message::Auth(auth) => {
+                            info!("Received auth message: {:?}", auth);
 
-                                send_auth_ok(&mut socket).await?;
-                                send_param(&mut socket, "application_name", env!("CARGO_PKG_NAME")).await?;
-                                send_param(&mut socket, "server_version", env!("CARGO_PKG_VERSION")).await?;
-                                send_ready_for_query(&mut socket).await?;
-                            },
-                            Message::Query(query) => {
-                                info!("Received query message: {:?}", query);
+                            send_auth_ok(&mut socket).await?;
+                            send_param(&mut socket, "application_name", env!("CARGO_PKG_NAME")).await?;
+                            send_param(&mut socket, "server_version", env!("CARGO_PKG_VERSION")).await?;
+                            send_ready_for_query(&mut socket).await?;
+                        },
+                        Message::Query(query) => {
+                            info!("Received query message: {:?}", query);
 
-                                send_row_descriptions(&mut socket, &vec!["name", "watt"]).await?;
-                                send_row_data(&mut socket, &vec!["foo", "bar"]).await?;
-                                send_command_complete(&mut socket, &format!("SELECT {}", 1)).await?;
-                                send_ready_for_query(&mut socket).await?;
-                            },
-                            Message::Terminate(terminate) => {
-                                info!("Received terminate message: {:?}", terminate);
+                            send_row_descriptions(&mut socket, &vec!["name", "watt"]).await?;
+                            send_row_data(&mut socket, &vec!["foo", "bar"]).await?;
+                            send_command_complete(&mut socket, &format!("SELECT {}", 1)).await?;
+                            send_ready_for_query(&mut socket).await?;
+                        },
+                        Message::Terminate(terminate) => {
+                            info!("Received terminate message: {:?}", terminate);
 
-                                break;
-                            },
-                            #[allow(unreachable_patterns)]
-                            _ => unreachable!()
-                        };
-                    },
-                    Err(e) => bail!(e)
+                            break;
+                        },
+                        #[allow(unreachable_patterns)]
+                        _ => unreachable!()
+                    };
                 }
             },
             _ = token.cancelled() => {
