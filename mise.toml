@@ -42,3 +42,14 @@ run = "bacon clippy"
 
 [tasks.psql]
 run = "PGPASSWORD=test psql 'postgres://unexist@localhost/foo?sslmode=disable'"
+
+[tasks.docker]
+usage = '''
+arg "<version>" help="New version"
+'''
+
+run = '''
+docker build -t unexist/rust:${usage.version} .circleci/images/primary
+docker login
+docker push unexist/rust:${usage.version}
+'''
