@@ -39,14 +39,30 @@ static MESSAGE1: &'static str = "CASE c.relkind END";
 
 
  //
- // Join message
+ // Simple join message
  //
 
 static MESSAGE2: &'static str = "LEFT JOIN album.name ON album.id = track.album_id";
 
  #[test]
- fn should_parse_unsupported_join() {
+ fn should_parse_unsupported_simple_join() {
      match parse_unsupported(MESSAGE2.as_bytes()) {
+         Ok(valid_but_unsupported) => {
+             assert!(valid_but_unsupported);
+         },
+         Err(e) => panic!("Error: {}", e),
+     }
+ }
+
+ //
+ // Simple join message
+ //
+
+static MESSAGE3: &'static str = "LEFT OUTER JOIN album.name ON album.id = track.album_id";
+
+ #[test]
+ fn should_parse_unsupported_outer_join() {
+     match parse_unsupported(MESSAGE3.as_bytes()) {
          Ok(valid_but_unsupported) => {
              assert!(valid_but_unsupported);
          },
