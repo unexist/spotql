@@ -12,6 +12,7 @@
 use nom::branch::alt;
 use nom::combinator::complete;
 use nom::combinator::map;
+use nom::combinator::opt;
 use nom::multi::many0;
 use nom::IResult;
 use nom::Parser;
@@ -46,13 +47,35 @@ pub(crate) fn unsupported_case_parser(input: &[u8]) -> IResult<&[u8], bool> {
     ).parse(input)
 }
 
+/* Case statement: case expr when expr then expr end */
+pub(crate) fn unsupported_join_parser(input: &[u8]) -> IResult<&[u8], bool> {
+    map(
+        (
+            alt((
+                ws(btag("left")),
+                ws(btag("right")),
+            )),
+            opt(
+                alt((
+                    ws(btag("inner")),
+                    ws(btag("outer")),
+                )),
+            ),
+            ws(btag("join")),
+            column_parser,
+            ws(btag("on")),
+            expression_parser,
+        ),
+        |(left_right, inner_outer, join, expression1, on, expression2)| true
+    ).parse(input)
+}
+
 pub(crate) fn unsupported_parser(input: &[u8]) -> IResult<&[u8], bool> {
     map(
-        alt(
-            (
-                unsupported_case_parser,
-            )
-        ),
+        alt((
+            unsupported_case_parser,
+            unsupported_join_parser,
+        )),
         |_| true
     ).parse(input)
 }
