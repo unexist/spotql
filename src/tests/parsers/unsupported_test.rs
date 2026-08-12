@@ -20,17 +20,34 @@
          })
      }
  }
+
  //
- // Terminate message
+ // Case message
  //
 
-static MESSAGE: &'static str = "CASE c.relkind END";
+static MESSAGE1: &'static str = "CASE c.relkind END";
 
  #[test]
  fn should_parse_unsupported_case() {
-     match parse_unsupported(MESSAGE.as_bytes()) {
+     match parse_unsupported(MESSAGE1.as_bytes()) {
          Ok(valid_but_unsupported) => {
-             println!("{:?}", valid_but_unsupported);
+             assert!(valid_but_unsupported);
+         },
+         Err(e) => panic!("Error: {}", e),
+     }
+ }
+
+
+ //
+ // Join message
+ //
+
+static MESSAGE2: &'static str = "LEFT JOIN album.name ON album.id = track.album_id";
+
+ #[test]
+ fn should_parse_unsupported_join() {
+     match parse_unsupported(MESSAGE2.as_bytes()) {
+         Ok(valid_but_unsupported) => {
              assert!(valid_but_unsupported);
          },
          Err(e) => panic!("Error: {}", e),
