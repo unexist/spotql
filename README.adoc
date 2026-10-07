@@ -1,6 +1,6 @@
 = spotql
 
-This project contains a simpple implementation of the Postgres wire protocol
+This project contains a simple implementation of the Postgres wire protocol
 to fetch data from the spotify API.
 
 == Links
